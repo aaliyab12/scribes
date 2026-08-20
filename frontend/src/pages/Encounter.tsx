@@ -278,6 +278,7 @@ function Encounter() {
           <button
             className="end-encounter"
             disabled={visibleTranscript.length === 0}
+            onClick={() => navigate(`/patients/${patient.id}/encounter/review`)}
           >
             End Encounter →
           </button>
