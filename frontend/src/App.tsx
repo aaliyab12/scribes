@@ -1,121 +1,166 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
 import './App.css'
 
+type Patient = {
+  id: number
+  initials: string
+  name: string
+  age: number
+  appointmentTime: string
+  visitType: string
+  status: 'Upcoming' | 'Ready'
+}
+
+const patients: Patient[] = [
+  {
+    id: 1,
+    initials: 'ML',
+    name: 'Maria Lopez',
+    age: 52,
+    appointmentTime: '9:00 AM',
+    visitType: 'Hypertension follow-up',
+    status: 'Ready',
+  },
+  {
+    id: 2,
+    initials: 'JW',
+    name: 'James Wilson',
+    age: 41,
+    appointmentTime: '9:30 AM',
+    visitType: 'Persistent cough',
+    status: 'Upcoming',
+  },
+  {
+    id: 3,
+    initials: 'SA',
+    name: 'Sarah Ahmed',
+    age: 35,
+    appointmentTime: '10:00 AM',
+    visitType: 'Annual physical',
+    status: 'Upcoming',
+  },
+  {
+    id: 4,
+    initials: 'DC',
+    name: 'David Chen',
+    age: 63,
+    appointmentTime: '10:30 AM',
+    visitType: 'Diabetes follow-up',
+    status: 'Upcoming',
+  },
+]
+
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    <div className="app">
+      <aside className="sidebar">
+        <div className="brand">
+          <div className="brand-icon">S</div>
 
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
+          <div>
+            <h1>Scribes</h1>
+            <span>Clinical Intelligence</span>
+          </div>
         </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
+        <nav>
+          <button className="nav-item active">
+            <span>▦</span>
+            Dashboard
+          </button>
+
+          <button className="nav-item">
+            <span>♙</span>
+            Patients
+          </button>
+
+          <button className="nav-item">
+            <span>◷</span>
+            Encounters
+          </button>
+        </nav>
+
+        <div className="sidebar-footer">
+          <div className="doctor-avatar">JS</div>
+
+          <div>
+            <strong>Dr. John Smith</strong>
+            <span>Internal Medicine</span>
+          </div>
+        </div>
+      </aside>
+
+      <main className="main-content">
+        <header>
+          <div>
+            <p className="eyebrow">THURSDAY, AUGUST 20</p>
+            <h2>Good afternoon, Dr. Smith.</h2>
+            <p className="subtitle">
+              Here's an overview of your clinical schedule.
+            </p>
+          </div>
+
+          <button className="new-encounter">+ New Encounter</button>
+        </header>
+
+        <section className="stats">
+          <div className="stat-card">
+            <span>Today's patients</span>
+            <strong>4</strong>
+          </div>
+
+          <div className="stat-card">
+            <span>Completed encounters</span>
+            <strong>0</strong>
+          </div>
+
+          <div className="stat-card attention">
+            <span>Items requiring review</span>
+            <strong>3</strong>
+          </div>
+        </section>
+
+        <section className="schedule">
+          <div className="section-heading">
+            <div>
+              <h3>Today's Patients</h3>
+              <p>Select a patient to review their clinical record.</p>
+            </div>
+
+            <span>August 20, 2026</span>
+          </div>
+
+          <div className="patient-list">
+            {patients.map((patient) => (
+              <div className="patient-card" key={patient.id}>
+                <div className="time">{patient.appointmentTime}</div>
+
+                <div className="patient-avatar">{patient.initials}</div>
+
+                <div className="patient-info">
+                  <strong>{patient.name}</strong>
+                  <span>{patient.age} years old</span>
+                </div>
+
+                <div className="visit-type">
+                  <span>Reason for visit</span>
+                  <strong>{patient.visitType}</strong>
+                </div>
+
+                <span
+                  className={`status ${
+                    patient.status === 'Ready' ? 'ready' : ''
+                  }`}
+                >
+                  {patient.status}
+                </span>
+
+                <button className="review-button">Review Patient →</button>
+              </div>
+            ))}
+          </div>
+        </section>
+      </main>
+    </div>
   )
 }
 
