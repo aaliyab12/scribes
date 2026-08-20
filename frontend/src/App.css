@@ -337,3 +337,131 @@ header h2 {
     display: none;
   }
 }
+.back-button {
+  border: none;
+  background: transparent;
+  color: #416468;
+  padding: 0;
+  margin-bottom: 26px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.patient-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.patient-header h2 {
+  margin: 0;
+  font-size: 32px;
+}
+
+.profile-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 18px;
+  margin-bottom: 30px;
+}
+
+.profile-card {
+  background: white;
+  border: 1px solid #e3e8e8;
+  border-radius: 10px;
+  padding: 20px;
+  min-height: 120px;
+}
+
+.profile-label {
+  display: block;
+  color: #7b888c;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  margin-bottom: 12px;
+  font-weight: 700;
+}
+
+.profile-card strong {
+  display: block;
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+
+.clinical-section {
+  background: white;
+  border: 1px solid #e1e7e7;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 24px;
+}
+
+.profile-section-heading {
+  padding: 22px 26px;
+}
+
+.follow-up-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 26px;
+  border-top: 1px solid #edf0f0;
+}
+
+.follow-up-item strong,
+.follow-up-item span {
+  display: block;
+}
+
+.follow-up-item strong {
+  font-size: 13px;
+}
+
+.follow-up-item span {
+  margin-top: 4px;
+  color: #7e8a8e;
+  font-size: 11px;
+}
+
+.warning-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: #fff3dd;
+  color: #a66d13;
+  font-weight: 800;
+}
+
+.encounter-content {
+  padding: 24px 26px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+}
+
+.encounter-content p,
+.encounter-content li {
+  font-size: 13px;
+  line-height: 1.7;
+  color: #46575c;
+}
+
+.encounter-content ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+@media (max-width: 1000px) {
+  .profile-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .encounter-content {
+    grid-template-columns: 1fr;
+  }
+}
