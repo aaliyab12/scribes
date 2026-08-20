@@ -465,3 +465,247 @@ header h2 {
     grid-template-columns: 1fr;
   }
 }
+.encounter-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 30px;
+}
+
+.encounter-header h2 {
+  margin: 0;
+  font-size: 32px;
+}
+
+.recording-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #eef1f1;
+  color: #67767a;
+  border-radius: 20px;
+  padding: 8px 12px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.recording-status.recording {
+  background: #fdeaea;
+  color: #a33a3a;
+}
+
+.recording-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #96a0a3;
+}
+
+.recording-status.recording .recording-dot {
+  background: #cf4949;
+}
+
+.encounter-layout {
+  display: grid;
+  grid-template-columns: 360px 1fr;
+  gap: 22px;
+}
+
+.recording-panel,
+.transcript-panel {
+  background: white;
+  border: 1px solid #e1e7e7;
+  border-radius: 12px;
+}
+
+.recording-panel {
+  min-height: 480px;
+  padding: 42px 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.microphone-circle {
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: #e5f1ef;
+  font-size: 34px;
+  margin-bottom: 24px;
+}
+
+.recording-label {
+  font-weight: 700;
+  font-size: 15px;
+  margin: 0 0 10px;
+}
+
+.encounter-timer {
+  font-size: 34px;
+  letter-spacing: 2px;
+  margin-bottom: 18px;
+}
+
+.recording-helper {
+  color: #7b898d;
+  font-size: 12px;
+  line-height: 1.6;
+  max-width: 260px;
+  margin-bottom: 24px;
+}
+
+.start-recording {
+  min-width: 150px;
+}
+
+.stop-recording {
+  border: none;
+  border-radius: 8px;
+  background: #b94949;
+  color: white;
+  padding: 12px 18px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.stop-recording:hover {
+  background: #9f3c3c;
+}
+
+.transcript-panel {
+  overflow: hidden;
+  min-height: 480px;
+}
+
+.transcript-heading {
+  padding: 22px 24px;
+  border-bottom: 1px solid #e9eeee;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.transcript-heading h3 {
+  margin: 0;
+  font-size: 17px;
+}
+
+.transcript-heading p,
+.transcript-heading span {
+  color: #7e8b8f;
+  font-size: 11px;
+}
+
+.transcript-heading p {
+  margin: 5px 0 0;
+}
+
+.transcript-content {
+  padding: 24px;
+  max-height: 480px;
+  overflow-y: auto;
+}
+
+.empty-transcript {
+  min-height: 350px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  color: #819095;
+}
+
+.empty-transcript > span {
+  font-size: 30px;
+  margin-bottom: 12px;
+}
+
+.empty-transcript strong {
+  color: #526469;
+}
+
+.empty-transcript p {
+  font-size: 12px;
+}
+
+.transcript-entry {
+  display: flex;
+  gap: 14px;
+  padding: 14px 0;
+  border-bottom: 1px solid #edf0f0;
+}
+
+.transcript-entry:last-child {
+  border-bottom: none;
+}
+
+.transcript-entry strong {
+  font-size: 12px;
+}
+
+.transcript-entry p {
+  margin: 5px 0 0;
+  color: #526166;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.speaker-badge {
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: #d9ece8;
+  color: #275e59;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.patient-speaker {
+  background: #edf0f5;
+  color: #536078;
+}
+
+.encounter-actions {
+  margin-top: 24px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.cancel-encounter {
+  border: 1px solid #d8e0e0;
+  background: white;
+  color: #536469;
+  border-radius: 8px;
+  padding: 11px 16px;
+  cursor: pointer;
+}
+
+.end-encounter {
+  border: none;
+  background: #1e6864;
+  color: white;
+  border-radius: 8px;
+  padding: 11px 18px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.end-encounter:disabled {
+  background: #aeb9b9;
+  cursor: not-allowed;
+}
+
+@media (max-width: 1000px) {
+  .encounter-layout {
+    grid-template-columns: 1fr;
+  }
+}

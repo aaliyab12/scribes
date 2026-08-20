@@ -72,7 +72,9 @@ function PatientProfile() {
             </p>
           </div>
 
-          <button className="new-encounter">
+          <button className="new-encounter"
+            onClick={() => navigate(`/patients/${patient.id}/encounter`)}
+          >
             Start Encounter
           </button>
         </section>
