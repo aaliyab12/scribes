@@ -29,17 +29,59 @@ function Dashboard() {
             </div>
           </button>
 
-          <div className="topbar-links">
-            <button className="topbar-link active">Dashboard</button>
-            <button className="topbar-link">Patients</button>
-            <button className="topbar-link">Encounters</button>
-            <button className="topbar-link">Documentation</button>
+        <div className="topbar-links">
+  <button
+    className="topbar-link active"
+    onClick={() => navigate('/')}
+  >
+    Dashboard
+  </button>
 
-            <button className="topbar-link">
-              Review Queue
-              <span className="nav-badge">3</span>
-            </button>
-          </div>
+  <button
+    className="topbar-link"
+    onClick={() => {
+      document
+        .getElementById('patients')
+        ?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start',
+        })
+    }}
+  >
+    Patients
+  </button>
+
+  <button
+    className="topbar-link"
+    onClick={() => {
+      document
+        .getElementById('patients')
+        ?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start',
+        })
+    }}
+  >
+    Encounters
+  </button>
+
+  <button
+    className="topbar-link disabled-nav"
+    disabled
+    title="Available once encounter documentation is stored"
+  >
+    Documentation
+  </button>
+
+  <button
+    className="topbar-link disabled-nav"
+    disabled
+    title="Available once care gaps are stored"
+  >
+    Review Queue
+    <span className="nav-badge">3</span>
+  </button>
+</div>
 
           <div className="topbar-actions">
             <button className="round-button" aria-label="Search">
@@ -119,7 +161,7 @@ function Dashboard() {
         </section>
 
         <div className="dashboard-columns">
-          <section className="surface schedule-surface">
+          <section className="surface schedule-surface" id="patients">
             <div className="surface-heading">
               <div>
                 <h3>Today’s Schedule</h3>

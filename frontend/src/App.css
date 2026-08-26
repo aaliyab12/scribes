@@ -1732,3 +1732,12 @@ button:disabled {
     flex-direction: column;
   }
 }
+.topbar-link.disabled-nav {
+  opacity: 0.42;
+  cursor: not-allowed;
+}
+
+.topbar-link.disabled-nav:hover {
+  color: #697780;
+  background: transparent;
+}

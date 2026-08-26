@@ -10,44 +10,136 @@ import {
 } from 'lucide-react'
 import { patients } from '../data/patients'
 
-const sampleTranscript = [
-  {
-    speaker: 'Doctor',
-    text: 'Hi Maria. How have you been feeling since your last visit?',
-  },
-  {
-    speaker: 'Patient',
-    text: 'I have still been getting headaches, especially in the evenings.',
-  },
-  {
-    speaker: 'Doctor',
-    text: 'Are you still taking your blood pressure medication every day?',
-  },
-  {
-    speaker: 'Patient',
-    text: 'Actually, I stopped taking it about two months ago because I ran out.',
-  },
-  {
-    speaker: 'Doctor',
-    text: 'Did you complete the blood tests we ordered during your last visit?',
-  },
-  {
-    speaker: 'Patient',
-    text: 'No, I never got those done.',
-  },
-]
+type TranscriptEntry = {
+  speaker: 'Doctor' | 'Patient'
+  text: string
+}
+
+const patientTranscripts: Record<number, TranscriptEntry[]> = {
+  1: [
+    {
+      speaker: 'Doctor',
+      text: 'Hi Maria. How have you been feeling since your last visit?',
+    },
+    {
+      speaker: 'Patient',
+      text: 'I have still been getting headaches, especially in the evenings.',
+    },
+    {
+      speaker: 'Doctor',
+      text: 'Are you still taking your blood pressure medication every day?',
+    },
+    {
+      speaker: 'Patient',
+      text: 'Actually, I stopped taking it about two months ago because I ran out.',
+    },
+    {
+      speaker: 'Doctor',
+      text: 'Did you complete the blood tests we ordered during your last visit?',
+    },
+    {
+      speaker: 'Patient',
+      text: 'No, I never got those done.',
+    },
+  ],
+
+  2: [
+    {
+      speaker: 'Doctor',
+      text: 'Hi James. How long have you been dealing with the cough?',
+    },
+    {
+      speaker: 'Patient',
+      text: 'It has been going on for about three weeks.',
+    },
+    {
+      speaker: 'Doctor',
+      text: 'Have you had any fever, shortness of breath, or chest pain?',
+    },
+    {
+      speaker: 'Patient',
+      text: 'No chest pain or shortness of breath. I had a mild fever last week.',
+    },
+    {
+      speaker: 'Doctor',
+      text: 'Are you still taking Cetirizine for your seasonal allergies?',
+    },
+    {
+      speaker: 'Patient',
+      text: 'Yes, I take it most days.',
+    },
+  ],
+
+  3: [
+    {
+      speaker: 'Doctor',
+      text: 'Hi Sarah. Since this is your annual physical, how have you been feeling overall?',
+    },
+    {
+      speaker: 'Patient',
+      text: 'Overall I feel pretty good. I have been more tired than usual lately.',
+    },
+    {
+      speaker: 'Doctor',
+      text: 'Are you currently taking any medications or supplements?',
+    },
+    {
+      speaker: 'Patient',
+      text: 'No prescription medications. I take a multivitamin occasionally.',
+    },
+    {
+      speaker: 'Doctor',
+      text: 'Any new medical concerns since your last physical?',
+    },
+    {
+      speaker: 'Patient',
+      text: 'Nothing major besides the fatigue.',
+    },
+  ],
+
+  4: [
+    {
+      speaker: 'Doctor',
+      text: 'Hi David. How has your diabetes management been since your last visit?',
+    },
+    {
+      speaker: 'Patient',
+      text: 'My blood sugar has been higher than usual in the mornings.',
+    },
+    {
+      speaker: 'Doctor',
+      text: 'Are you still taking Metformin twice a day?',
+    },
+    {
+      speaker: 'Patient',
+      text: 'I usually take it, but I miss the evening dose a few times each week.',
+    },
+    {
+      speaker: 'Doctor',
+      text: 'Have you noticed any other symptoms?',
+    },
+    {
+      speaker: 'Patient',
+      text: 'I have been feeling more thirsty lately.',
+    },
+  ],
+}
 
 function Encounter() {
   const navigate = useNavigate()
   const { id } = useParams()
 
   const patient = patients.find((p) => p.id === Number(id))
+  const patientId = Number(id)
+
+  const sampleTranscript =
+    patientTranscripts[patientId] ?? []
 
   const [isRecording, setIsRecording] = useState(false)
+  const [hasStarted, setHasStarted] = useState(false)
   const [seconds, setSeconds] = useState(0)
-  const [visibleTranscript, setVisibleTranscript] = useState<
-    typeof sampleTranscript
-  >([])
+  const [visibleTranscript, setVisibleTranscript] =
+    useState<TranscriptEntry[]>([])
 
   useEffect(() => {
     let timer: number | undefined
@@ -75,7 +167,7 @@ function Encounter() {
     }, 1800)
 
     return () => window.clearTimeout(transcriptTimer)
-  }, [isRecording, visibleTranscript])
+  }, [isRecording, visibleTranscript, sampleTranscript])
 
   if (!patient) {
     return <div className="empty-page">Patient not found.</div>
@@ -96,14 +188,31 @@ function Encounter() {
   const startRecording = () => {
     setSeconds(0)
     setVisibleTranscript([])
+    setHasStarted(true)
     setIsRecording(true)
+  }
+
+  const stopRecording = () => {
+    setIsRecording(false)
+  }
+
+  const endEncounter = () => {
+    navigate(`/patients/${patient.id}/encounter/review`, {
+      state: {
+        transcript: visibleTranscript,
+        duration: seconds,
+      },
+    })
   }
 
   return (
     <div className="page-shell">
       <nav className="topbar">
         <div className="topbar-inner">
-          <button className="brand-button" onClick={() => navigate('/')}>
+          <button
+            className="brand-button"
+            onClick={() => navigate('/')}
+          >
             <div className="brand-mark">
               <Activity size={20} />
             </div>
@@ -115,17 +224,30 @@ function Encounter() {
           </button>
 
           <div className="topbar-links">
-            <button className="topbar-link" onClick={() => navigate('/')}>
-              Dashboard
-            </button>
             <button
               className="topbar-link"
-              onClick={() => navigate(`/patients/${patient.id}`)}
+              onClick={() => navigate('/')}
+            >
+              Dashboard
+            </button>
+
+            <button
+              className="topbar-link"
+              onClick={() =>
+                navigate(`/patients/${patient.id}`)
+              }
             >
               Patients
             </button>
-            <button className="topbar-link active">Encounters</button>
-            <button className="topbar-link">Documentation</button>
+
+            <button className="topbar-link active">
+              Encounters
+            </button>
+
+            <button className="topbar-link">
+              Documentation
+            </button>
+
             <button className="topbar-link">
               Review Queue
               <span className="nav-badge">3</span>
@@ -139,6 +261,7 @@ function Encounter() {
 
             <div className="doctor-profile">
               <div className="doctor-avatar">JS</div>
+
               <div>
                 <strong>Dr. John Smith</strong>
                 <span>Internal Medicine</span>
@@ -151,7 +274,9 @@ function Encounter() {
       <main className="content">
         <button
           className="back-link"
-          onClick={() => navigate(`/patients/${patient.id}`)}
+          onClick={() =>
+            navigate(`/patients/${patient.id}`)
+          }
         >
           <ArrowLeft size={15} />
           {patient.name}
@@ -159,8 +284,12 @@ function Encounter() {
 
         <section className="encounter-title-row">
           <div>
-            <span className="overline">LIVE ENCOUNTER</span>
+            <span className="overline">
+              LIVE ENCOUNTER
+            </span>
+
             <h1>{patient.name}</h1>
+
             <p>
               {patient.visitType} · {patient.age} years old
             </p>
@@ -174,7 +303,12 @@ function Encounter() {
             }
           >
             <Circle size={8} fill="currentColor" />
-            {isRecording ? 'Recording' : 'Not Recording'}
+
+            {isRecording
+              ? 'Recording'
+              : hasStarted
+                ? 'Recording stopped'
+                : 'Not Recording'}
           </span>
         </section>
 
@@ -198,11 +332,14 @@ function Encounter() {
                   : 'Ready to Record'}
             </span>
 
-            <strong className="timer">{formatTime(seconds)}</strong>
+            <strong className="timer">
+              {formatTime(seconds)}
+            </strong>
 
             <p>
-              This prototype currently uses a simulated transcript.
-              Live speech-to-text will be connected next.
+              This prototype currently uses a simulated
+              transcript. Live speech-to-text will be
+              connected later.
             </p>
 
             {!isRecording ? (
@@ -211,14 +348,20 @@ function Encounter() {
                 onClick={startRecording}
               >
                 <Mic size={16} />
-                Start Recording
+
+                {hasStarted
+                  ? 'Restart Recording'
+                  : 'Start Recording'}
               </button>
             ) : (
               <button
                 className="danger-button"
-                onClick={() => setIsRecording(false)}
+                onClick={stopRecording}
               >
-                <Square size={14} fill="currentColor" />
+                <Square
+                  size={14}
+                  fill="currentColor"
+                />
                 Stop Recording
               </button>
             )}
@@ -228,7 +371,9 @@ function Encounter() {
             <div className="surface-heading">
               <div>
                 <h3>Live Transcript</h3>
-                <p>Conversation transcription appears here.</p>
+                <p>
+                  Conversation transcription appears here.
+                </p>
               </div>
 
               <span className="subtle-counter">
@@ -240,12 +385,19 @@ function Encounter() {
               {visibleTranscript.length === 0 ? (
                 <div className="transcript-empty">
                   <Mic size={28} />
+
                   <strong>No transcript yet</strong>
-                  <span>Start recording to begin the encounter.</span>
+
+                  <span>
+                    Start recording to begin the encounter.
+                  </span>
                 </div>
               ) : (
                 visibleTranscript.map((entry, index) => (
-                  <div className="transcript-line" key={index}>
+                  <div
+                    className="transcript-line"
+                    key={`${entry.speaker}-${index}`}
+                  >
                     <div
                       className={
                         entry.speaker === 'Doctor'
@@ -253,13 +405,20 @@ function Encounter() {
                           : 'speaker-avatar patient'
                       }
                     >
-                      {entry.speaker === 'Doctor' ? 'DR' : 'PT'}
+                      {entry.speaker === 'Doctor'
+                        ? 'DR'
+                        : 'PT'}
                     </div>
 
-                    <div>
-                      <strong>{entry.speaker}</strong>
-                      <p>{entry.text}</p>
-                    </div>
+                   <div>
+  <strong>
+    {entry.speaker === 'Doctor'
+      ? 'Dr. John Smith'
+      : patient.name}
+  </strong>
+
+  <p>{entry.text}</p>
+</div>
                   </div>
                 ))
               )}
@@ -270,17 +429,20 @@ function Encounter() {
         <div className="bottom-actions">
           <button
             className="ghost-button"
-            onClick={() => navigate(`/patients/${patient.id}`)}
+            onClick={() =>
+              navigate(`/patients/${patient.id}`)
+            }
           >
             Cancel
           </button>
 
           <button
             className="primary-button"
-            disabled={visibleTranscript.length === 0}
-            onClick={() =>
-              navigate(`/patients/${patient.id}/encounter/review`)
+            disabled={
+              visibleTranscript.length === 0 ||
+              isRecording
             }
+            onClick={endEncounter}
           >
             End Encounter
           </button>

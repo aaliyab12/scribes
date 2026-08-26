@@ -40,12 +40,31 @@ function PatientProfile() {
               Dashboard
             </button>
             <button className="topbar-link active">Patients</button>
-            <button className="topbar-link">Encounters</button>
-            <button className="topbar-link">Documentation</button>
-            <button className="topbar-link">
-              Review Queue
-              <span className="nav-badge">3</span>
-            </button>
+            <button
+  className="topbar-link"
+  onClick={() =>
+    navigate(`/patients/${patient.id}/encounter`)
+  }
+>
+  Encounters
+</button>
+
+<button
+  className="topbar-link disabled-nav"
+  disabled
+  title="Available once encounter documentation is stored"
+>
+  Documentation
+</button>
+
+<button
+  className="topbar-link disabled-nav"
+  disabled
+  title="Available once care gaps are stored"
+>
+  Review Queue
+  <span className="nav-badge">3</span>
+</button>
           </div>
 
           <div className="topbar-actions">
