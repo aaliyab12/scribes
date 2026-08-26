@@ -1,7 +1,14 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import {
+  Activity,
+  ArrowLeft,
+  Circle,
+  Mic,
+  Search,
+  Square,
+} from 'lucide-react'
 import { patients } from '../data/patients'
-import '../App.css'
 
 const sampleTranscript = [
   {
@@ -52,20 +59,13 @@ function Encounter() {
     }
 
     return () => {
-      if (timer) {
-        window.clearInterval(timer)
-      }
+      if (timer) window.clearInterval(timer)
     }
   }, [isRecording])
 
   useEffect(() => {
-    if (!isRecording) {
-      return
-    }
-
-    if (visibleTranscript.length >= sampleTranscript.length) {
-      return
-    }
+    if (!isRecording) return
+    if (visibleTranscript.length >= sampleTranscript.length) return
 
     const transcriptTimer = window.setTimeout(() => {
       setVisibleTranscript((previous) => [
@@ -74,13 +74,11 @@ function Encounter() {
       ])
     }, 1800)
 
-    return () => {
-      window.clearTimeout(transcriptTimer)
-    }
+    return () => window.clearTimeout(transcriptTimer)
   }, [isRecording, visibleTranscript])
 
   if (!patient) {
-    return <div>Patient not found.</div>
+    return <div className="empty-page">Patient not found.</div>
   }
 
   const formatTime = (totalSeconds: number) => {
@@ -88,11 +86,11 @@ function Encounter() {
       .toString()
       .padStart(2, '0')
 
-    const remainingSeconds = (totalSeconds % 60)
+    const remaining = (totalSeconds % 60)
       .toString()
       .padStart(2, '0')
 
-    return `${minutes}:${remainingSeconds}`
+    return `${minutes}:${remaining}`
   }
 
   const startRecording = () => {
@@ -101,159 +99,161 @@ function Encounter() {
     setIsRecording(true)
   }
 
-  const stopRecording = () => {
-    setIsRecording(false)
-  }
-
   return (
-    <div className="app">
-      <aside className="sidebar">
-        <div className="brand">
-          <div className="brand-icon">S</div>
-
-          <div>
-            <h1>Scribes</h1>
-            <span>Clinical Intelligence</span>
-          </div>
-        </div>
-
-        <nav>
-          <button
-            className="nav-item"
-            onClick={() => navigate('/')}
-          >
-            <span>▦</span>
-            Dashboard
-          </button>
-
-          <button
-            className="nav-item"
-            onClick={() => navigate(`/patients/${patient.id}`)}
-          >
-            <span>♙</span>
-            Patients
-          </button>
-
-          <button className="nav-item active">
-            <span>◷</span>
-            Encounters
-          </button>
-        </nav>
-
-        <div className="sidebar-footer">
-          <div className="doctor-avatar">JS</div>
-
-          <div>
-            <strong>Dr. John Smith</strong>
-            <span>Internal Medicine</span>
-          </div>
-        </div>
-      </aside>
-
-      <main className="main-content">
-        <button
-          className="back-button"
-          onClick={() => navigate(`/patients/${patient.id}`)}
-        >
-          ← Back to Patient
-        </button>
-
-        <section className="encounter-header">
-          <div>
-            <p className="eyebrow">LIVE ENCOUNTER</p>
-            <h2>{patient.name}</h2>
-            <p className="subtitle">
-              {patient.visitType} • {patient.age} years old
-            </p>
-          </div>
-
-          <div
-            className={`recording-status ${
-              isRecording ? 'recording' : ''
-            }`}
-          >
-            <span className="recording-dot" />
-            {isRecording ? 'Recording' : 'Not Recording'}
-          </div>
-        </section>
-
-        <section className="encounter-layout">
-          <div className="recording-panel">
-            <div className="microphone-circle">
-              🎙
+    <div className="page-shell">
+      <nav className="topbar">
+        <div className="topbar-inner">
+          <button className="brand-button" onClick={() => navigate('/')}>
+            <div className="brand-mark">
+              <Activity size={20} />
             </div>
 
-            <p className="recording-label">
+            <div className="brand-text">
+              <strong>Scribes</strong>
+              <span>Clinical Intelligence</span>
+            </div>
+          </button>
+
+          <div className="topbar-links">
+            <button className="topbar-link" onClick={() => navigate('/')}>
+              Dashboard
+            </button>
+            <button
+              className="topbar-link"
+              onClick={() => navigate(`/patients/${patient.id}`)}
+            >
+              Patients
+            </button>
+            <button className="topbar-link active">Encounters</button>
+            <button className="topbar-link">Documentation</button>
+            <button className="topbar-link">
+              Review Queue
+              <span className="nav-badge">3</span>
+            </button>
+          </div>
+
+          <div className="topbar-actions">
+            <button className="round-button">
+              <Search size={17} />
+            </button>
+
+            <div className="doctor-profile">
+              <div className="doctor-avatar">JS</div>
+              <div>
+                <strong>Dr. John Smith</strong>
+                <span>Internal Medicine</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      <main className="content">
+        <button
+          className="back-link"
+          onClick={() => navigate(`/patients/${patient.id}`)}
+        >
+          <ArrowLeft size={15} />
+          {patient.name}
+        </button>
+
+        <section className="encounter-title-row">
+          <div>
+            <span className="overline">LIVE ENCOUNTER</span>
+            <h1>{patient.name}</h1>
+            <p>
+              {patient.visitType} · {patient.age} years old
+            </p>
+          </div>
+
+          <span
+            className={
+              isRecording
+                ? 'recording-chip recording'
+                : 'recording-chip'
+            }
+          >
+            <Circle size={8} fill="currentColor" />
+            {isRecording ? 'Recording' : 'Not Recording'}
+          </span>
+        </section>
+
+        <div className="encounter-grid">
+          <section className="recording-surface">
+            <div
+              className={
+                isRecording
+                  ? 'mic-orb active'
+                  : 'mic-orb'
+              }
+            >
+              <Mic size={29} />
+            </div>
+
+            <span className="recording-caption">
               {isRecording
                 ? 'Recording Encounter'
-                : 'Ready to Record'}
-            </p>
+                : visibleTranscript.length > 0
+                  ? 'Encounter Recorded'
+                  : 'Ready to Record'}
+            </span>
 
-            <strong className="encounter-timer">
-              {formatTime(seconds)}
-            </strong>
+            <strong className="timer">{formatTime(seconds)}</strong>
 
-            <p className="recording-helper">
+            <p>
               This prototype currently uses a simulated transcript.
-              Live speech-to-text will be connected later.
+              Live speech-to-text will be connected next.
             </p>
 
             {!isRecording ? (
               <button
-                className="new-encounter start-recording"
+                className="primary-button record-button"
                 onClick={startRecording}
               >
+                <Mic size={16} />
                 Start Recording
               </button>
             ) : (
               <button
-                className="stop-recording"
-                onClick={stopRecording}
+                className="danger-button"
+                onClick={() => setIsRecording(false)}
               >
+                <Square size={14} fill="currentColor" />
                 Stop Recording
               </button>
             )}
-          </div>
+          </section>
 
-          <div className="transcript-panel">
-            <div className="transcript-heading">
+          <section className="surface transcript-surface">
+            <div className="surface-heading">
               <div>
                 <h3>Live Transcript</h3>
-                <p>
-                  Conversation transcription will appear here.
-                </p>
+                <p>Conversation transcription appears here.</p>
               </div>
 
-              <span>
+              <span className="subtle-counter">
                 {visibleTranscript.length} entries
               </span>
             </div>
 
-            <div className="transcript-content">
+            <div className="transcript-body">
               {visibleTranscript.length === 0 ? (
-                <div className="empty-transcript">
-                  <span>🎙</span>
+                <div className="transcript-empty">
+                  <Mic size={28} />
                   <strong>No transcript yet</strong>
-                  <p>
-                    Start the encounter to begin transcription.
-                  </p>
+                  <span>Start recording to begin the encounter.</span>
                 </div>
               ) : (
                 visibleTranscript.map((entry, index) => (
-                  <div
-                    className="transcript-entry"
-                    key={`${entry.speaker}-${index}`}
-                  >
+                  <div className="transcript-line" key={index}>
                     <div
-                      className={`speaker-badge ${
-                        entry.speaker === 'Patient'
-                          ? 'patient-speaker'
-                          : ''
-                      }`}
+                      className={
+                        entry.speaker === 'Doctor'
+                          ? 'speaker-avatar doctor'
+                          : 'speaker-avatar patient'
+                      }
                     >
-                      {entry.speaker === 'Doctor'
-                        ? 'DR'
-                        : 'PT'}
+                      {entry.speaker === 'Doctor' ? 'DR' : 'PT'}
                     </div>
 
                     <div>
@@ -264,23 +264,25 @@ function Encounter() {
                 ))
               )}
             </div>
-          </div>
-        </section>
+          </section>
+        </div>
 
-        <div className="encounter-actions">
+        <div className="bottom-actions">
           <button
-            className="cancel-encounter"
+            className="ghost-button"
             onClick={() => navigate(`/patients/${patient.id}`)}
           >
-            Cancel Encounter
+            Cancel
           </button>
 
           <button
-            className="end-encounter"
+            className="primary-button"
             disabled={visibleTranscript.length === 0}
-            onClick={() => navigate(`/patients/${patient.id}/encounter/review`)}
+            onClick={() =>
+              navigate(`/patients/${patient.id}/encounter/review`)
+            }
           >
-            End Encounter →
+            End Encounter
           </button>
         </div>
       </main>

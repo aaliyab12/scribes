@@ -1,7 +1,13 @@
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import {
+  Activity,
+  AlertTriangle,
+  ArrowLeft,
+  Check,
+  Search,
+} from 'lucide-react'
 import { patients } from '../data/patients'
-import '../App.css'
 
 type ReviewTab = 'soap' | 'gaps' | 'transcript'
 
@@ -35,80 +41,105 @@ const transcript = [
 function EncounterReview() {
   const navigate = useNavigate()
   const { id } = useParams()
-  const [activeTab, setActiveTab] = useState<ReviewTab>('soap')
+
+  const [activeTab, setActiveTab] =
+    useState<ReviewTab>('soap')
+
+  const [reviewed, setReviewed] = useState<number[]>([])
+  const [dismissed, setDismissed] = useState<number[]>([])
+  const [approved, setApproved] = useState(false)
 
   const patient = patients.find((p) => p.id === Number(id))
 
   if (!patient) {
-    return <div>Patient not found.</div>
+    return <div className="empty-page">Patient not found.</div>
+  }
+
+  const markReviewed = (gap: number) => {
+    setReviewed((current) => [...new Set([...current, gap])])
+    setDismissed((current) => current.filter((item) => item !== gap))
+  }
+
+  const dismiss = (gap: number) => {
+    setDismissed((current) => [...new Set([...current, gap])])
+    setReviewed((current) => current.filter((item) => item !== gap))
   }
 
   return (
-    <div className="app">
-      <aside className="sidebar">
-        <div className="brand">
-          <div className="brand-icon">S</div>
+    <div className="page-shell">
+      <nav className="topbar">
+        <div className="topbar-inner">
+          <button className="brand-button" onClick={() => navigate('/')}>
+            <div className="brand-mark">
+              <Activity size={20} />
+            </div>
 
-          <div>
-            <h1>Scribes</h1>
-            <span>Clinical Intelligence</span>
+            <div className="brand-text">
+              <strong>Scribes</strong>
+              <span>Clinical Intelligence</span>
+            </div>
+          </button>
+
+          <div className="topbar-links">
+            <button className="topbar-link" onClick={() => navigate('/')}>
+              Dashboard
+            </button>
+            <button
+              className="topbar-link"
+              onClick={() => navigate(`/patients/${patient.id}`)}
+            >
+              Patients
+            </button>
+            <button className="topbar-link active">Encounters</button>
+            <button className="topbar-link">Documentation</button>
+            <button className="topbar-link">
+              Review Queue
+              <span className="nav-badge">3</span>
+            </button>
+          </div>
+
+          <div className="topbar-actions">
+            <button className="round-button">
+              <Search size={17} />
+            </button>
+
+            <div className="doctor-profile">
+              <div className="doctor-avatar">JS</div>
+              <div>
+                <strong>Dr. John Smith</strong>
+                <span>Internal Medicine</span>
+              </div>
+            </div>
           </div>
         </div>
+      </nav>
 
-        <nav>
-          <button
-            className="nav-item"
-            onClick={() => navigate('/')}
-          >
-            <span>▦</span>
-            Dashboard
-          </button>
-
-          <button
-            className="nav-item"
-            onClick={() => navigate(`/patients/${patient.id}`)}
-          >
-            <span>♙</span>
-            Patients
-          </button>
-
-          <button className="nav-item active">
-            <span>◷</span>
-            Encounters
-          </button>
-        </nav>
-
-        <div className="sidebar-footer">
-          <div className="doctor-avatar">JS</div>
-
-          <div>
-            <strong>Dr. John Smith</strong>
-            <span>Internal Medicine</span>
-          </div>
-        </div>
-      </aside>
-
-      <main className="main-content">
+      <main className="content">
         <button
-          className="back-button"
+          className="back-link"
           onClick={() => navigate(`/patients/${patient.id}`)}
         >
-          ← Back to Patient
+          <ArrowLeft size={15} />
+          {patient.name}
         </button>
 
-        <section className="review-header">
+        <section className="review-title">
           <div>
-            <p className="eyebrow">ENCOUNTER REVIEW</p>
-            <h2>{patient.name}</h2>
-
-            <p className="subtitle">
-              {patient.visitType} • August 20, 2026
-            </p>
+            <span className="overline">ENCOUNTER REVIEW</span>
+            <h1>{patient.name}</h1>
+            <p>{patient.visitType} · August 26, 2026</p>
           </div>
 
-          <div className="review-status">
-            Draft for clinician review
-          </div>
+          <span className={approved ? 'draft-chip approved' : 'draft-chip'}>
+            {approved ? (
+              <>
+                <Check size={14} />
+                Approved
+              </>
+            ) : (
+              'Draft for clinician review'
+            )}
+          </span>
         </section>
 
         <div className="review-tabs">
@@ -124,7 +155,7 @@ function EncounterReview() {
             onClick={() => setActiveTab('gaps')}
           >
             Care Gaps
-            <span className="gap-count">3</span>
+            <span>3</span>
           </button>
 
           <button
@@ -136,20 +167,20 @@ function EncounterReview() {
         </div>
 
         {activeTab === 'soap' && (
-          <section className="review-card">
-            <div className="review-card-heading">
+          <section className="surface review-surface">
+            <div className="surface-heading">
               <div>
                 <h3>Generated SOAP Note</h3>
                 <p>
-                  Draft generated from the encounter transcript.
-                  Clinician verification is required.
+                  Draft generated from the encounter. Clinician
+                  verification is required.
                 </p>
               </div>
             </div>
 
-            <div className="soap-content">
-              <div className="soap-section">
-                <span>S</span>
+            <div className="soap-note">
+              <div className="soap-row">
+                <div className="soap-letter">S</div>
 
                 <div>
                   <h4>Subjective</h4>
@@ -163,8 +194,8 @@ function EncounterReview() {
                 </div>
               </div>
 
-              <div className="soap-section">
-                <span>O</span>
+              <div className="soap-row">
+                <div className="soap-letter">O</div>
 
                 <div>
                   <h4>Objective</h4>
@@ -178,30 +209,27 @@ function EncounterReview() {
                 </div>
               </div>
 
-              <div className="soap-section">
-                <span>A</span>
+              <div className="soap-row">
+                <div className="soap-letter">A</div>
 
                 <div>
                   <h4>Assessment</h4>
                   <p>
                     Hypertension follow-up with continued reported
-                    headaches and a discrepancy between the patient's
+                    headaches and a discrepancy between the patient’s
                     reported medication use and the current medication
                     record.
                   </p>
                 </div>
               </div>
 
-              <div className="soap-section">
-                <span>P</span>
+              <div className="soap-row">
+                <div className="soap-letter">P</div>
 
                 <div>
                   <h4>Plan</h4>
-
                   <ul>
-                    <li>
-                      Verify current Lisinopril use and medication status.
-                    </li>
+                    <li>Verify current Lisinopril use and medication status.</li>
                     <li>
                       Review outstanding CBC and comprehensive metabolic
                       panel orders.
@@ -217,200 +245,163 @@ function EncounterReview() {
         )}
 
         {activeTab === 'gaps' && (
-          <section className="review-card">
-            <div className="review-card-heading">
+          <section className="surface review-surface">
+            <div className="surface-heading">
               <div>
                 <h3>Potential Care Gaps</h3>
                 <p>
-                  These items were flagged for clinician review based on
-                  the encounter and available patient record.
+                  Flagged from the encounter and available patient record.
                 </p>
               </div>
 
-              <span className="review-count">
-                3 items
-              </span>
+              <span className="count-badge">3</span>
             </div>
 
-            <div className="care-gap-list">
-              <div className="care-gap-card high">
-                <div className="gap-top-row">
-                  <div>
-                    <span className="gap-category">
-                      Medication Discrepancy
+            <div className="gap-list">
+              {[
+                {
+                  id: 1,
+                  type: 'MEDICATION DISCREPANCY',
+                  title:
+                    'Patient-reported medication status conflicts with current chart.',
+                  leftLabel: 'PATIENT REPORTED',
+                  left:
+                    '“I stopped taking it about two months ago because I ran out.”',
+                  rightLabel: 'CURRENT RECORD',
+                  right: 'Lisinopril 10 mg daily — listed as active.',
+                  reason:
+                    'The patient’s reported medication status differs from the medication status documented in the current chart.',
+                  level: 'High confidence',
+                },
+                {
+                  id: 2,
+                  type: 'OUTSTANDING LABORATORY ORDERS',
+                  title:
+                    'Previously ordered laboratory tests have no recorded results.',
+                  leftLabel: 'PREVIOUS RECORD',
+                  left:
+                    'CBC and comprehensive metabolic panel ordered February 10, 2026.',
+                  rightLabel: 'CURRENT ENCOUNTER',
+                  right:
+                    'Patient states that the ordered tests were not completed.',
+                  reason:
+                    'Outstanding orders have no corresponding results and the patient confirmed that they were not completed.',
+                  level: 'High confidence',
+                },
+                {
+                  id: 3,
+                  type: 'FOLLOW-UP TIMING',
+                  title:
+                    'Previous follow-up recommendation appears overdue.',
+                  leftLabel: 'PREVIOUS PLAN',
+                  left:
+                    'Follow up in 3 months after February 10, 2026 visit.',
+                  rightLabel: 'CURRENT ENCOUNTER',
+                  right:
+                    'Current encounter occurred approximately six months later.',
+                  reason:
+                    'The interval between encounters is longer than the follow-up timing documented in the previous plan.',
+                  level: 'Medium confidence',
+                },
+              ].map((gap) => (
+                <article
+                  key={gap.id}
+                  className={
+                    dismissed.includes(gap.id)
+                      ? 'gap-card dismissed'
+                      : reviewed.includes(gap.id)
+                        ? 'gap-card reviewed'
+                        : 'gap-card'
+                  }
+                >
+                  <div className="gap-heading">
+                    <div>
+                      <span className="priority-label">{gap.type}</span>
+                      <h4>{gap.title}</h4>
+                    </div>
+
+                    <span
+                      className={
+                        gap.level.startsWith('High')
+                          ? 'confidence-chip high'
+                          : 'confidence-chip medium'
+                      }
+                    >
+                      {gap.level}
                     </span>
-                    <h4>
-                      Patient-reported medication status conflicts with
-                      current chart.
-                    </h4>
                   </div>
 
-                  <span className="confidence high-confidence">
-                    High confidence
-                  </span>
-                </div>
+                  <div className="evidence-pair">
+                    <div>
+                      <span>{gap.leftLabel}</span>
+                      <p>{gap.left}</p>
+                    </div>
 
-                <div className="evidence-grid">
-                  <div className="evidence-box">
-                    <span>Patient reported</span>
-                    <p>
-                      “I stopped taking it about two months ago because I
-                      ran out.”
-                    </p>
+                    <div>
+                      <span>{gap.rightLabel}</span>
+                      <p>{gap.right}</p>
+                    </div>
                   </div>
 
-                  <div className="evidence-box">
-                    <span>Current record</span>
-                    <p>
-                      Lisinopril 10 mg daily — listed as active.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="why-flagged">
-                  <strong>Why this was flagged</strong>
-                  <p>
-                    The patient's reported medication status differs
-                    from the medication status documented in the current
-                    chart.
-                  </p>
-                </div>
-
-                <div className="gap-actions">
-                  <button>Dismiss</button>
-                  <button className="primary-gap-action">
-                    Mark Reviewed
-                  </button>
-                </div>
-              </div>
-
-              <div className="care-gap-card high">
-                <div className="gap-top-row">
-                  <div>
-                    <span className="gap-category">
-                      Outstanding Laboratory Orders
-                    </span>
-                    <h4>
-                      Previously ordered laboratory tests have no
-                      recorded results.
-                    </h4>
+                  <div className="why">
+                    <strong>Why this was flagged</strong>
+                    <p>{gap.reason}</p>
                   </div>
 
-                  <span className="confidence high-confidence">
-                    High confidence
-                  </span>
-                </div>
+                  <div className="gap-actions">
+                    {dismissed.includes(gap.id) ? (
+                      <span className="resolved-text">
+                        Dismissed
+                      </span>
+                    ) : reviewed.includes(gap.id) ? (
+                      <span className="resolved-text">
+                        <Check size={14} />
+                        Reviewed
+                      </span>
+                    ) : (
+                      <>
+                        <button
+                          className="ghost-button small"
+                          onClick={() => dismiss(gap.id)}
+                        >
+                          Dismiss
+                        </button>
 
-                <div className="evidence-grid">
-                  <div className="evidence-box">
-                    <span>Previous record</span>
-                    <p>
-                      CBC and comprehensive metabolic panel ordered on
-                      February 10, 2026.
-                    </p>
+                        <button
+                          className="soft-button"
+                          onClick={() => markReviewed(gap.id)}
+                        >
+                          Mark Reviewed
+                        </button>
+                      </>
+                    )}
                   </div>
-
-                  <div className="evidence-box">
-                    <span>Current encounter</span>
-                    <p>
-                      Patient states that the ordered tests were not
-                      completed.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="why-flagged">
-                  <strong>Why this was flagged</strong>
-                  <p>
-                    The available record contains outstanding orders
-                    without corresponding results, and the patient
-                    confirmed they were not completed.
-                  </p>
-                </div>
-
-                <div className="gap-actions">
-                  <button>Dismiss</button>
-                  <button className="primary-gap-action">
-                    Mark Reviewed
-                  </button>
-                </div>
-              </div>
-
-              <div className="care-gap-card medium">
-                <div className="gap-top-row">
-                  <div>
-                    <span className="gap-category">
-                      Follow-Up Timing
-                    </span>
-                    <h4>
-                      Previous follow-up recommendation appears overdue.
-                    </h4>
-                  </div>
-
-                  <span className="confidence medium-confidence">
-                    Medium confidence
-                  </span>
-                </div>
-
-                <div className="evidence-grid">
-                  <div className="evidence-box">
-                    <span>Previous plan</span>
-                    <p>
-                      Follow up in 3 months after February 10, 2026 visit.
-                    </p>
-                  </div>
-
-                  <div className="evidence-box">
-                    <span>Current encounter</span>
-                    <p>
-                      Current encounter is approximately six months later.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="why-flagged">
-                  <strong>Why this was flagged</strong>
-                  <p>
-                    The interval between encounters is longer than the
-                    follow-up timing documented in the previous plan.
-                  </p>
-                </div>
-
-                <div className="gap-actions">
-                  <button>Dismiss</button>
-                  <button className="primary-gap-action">
-                    Mark Reviewed
-                  </button>
-                </div>
-              </div>
+                </article>
+              ))}
             </div>
           </section>
         )}
 
         {activeTab === 'transcript' && (
-          <section className="review-card">
-            <div className="review-card-heading">
+          <section className="surface review-surface">
+            <div className="surface-heading">
               <div>
                 <h3>Encounter Transcript</h3>
                 <p>
-                  Transcript used to generate the draft documentation and
-                  review flags.
+                  Transcript used to generate documentation and review flags.
                 </p>
               </div>
             </div>
 
-            <div className="review-transcript">
+            <div className="transcript-body review-transcript">
               {transcript.map((entry, index) => (
-                <div
-                  className="transcript-entry"
-                  key={`${entry.speaker}-${index}`}
-                >
+                <div className="transcript-line" key={index}>
                   <div
-                    className={`speaker-badge ${
-                      entry.speaker === 'Patient'
-                        ? 'patient-speaker'
-                        : ''
-                    }`}
+                    className={
+                      entry.speaker === 'Doctor'
+                        ? 'speaker-avatar doctor'
+                        : 'speaker-avatar patient'
+                    }
                   >
                     {entry.speaker === 'Doctor' ? 'DR' : 'PT'}
                   </div>
@@ -425,16 +416,26 @@ function EncounterReview() {
           </section>
         )}
 
-        <div className="review-footer-actions">
+        <div className="bottom-actions">
           <button
-            className="cancel-encounter"
+            className="ghost-button"
             onClick={() => navigate(`/patients/${patient.id}`)}
           >
             Return to Patient
           </button>
 
-          <button className="approve-note">
-            Approve Draft
+          <button
+            className="primary-button"
+            onClick={() => setApproved(true)}
+          >
+            {approved ? (
+              <>
+                <Check size={16} />
+                Approved
+              </>
+            ) : (
+              'Approve Draft'
+            )}
           </button>
         </div>
       </main>

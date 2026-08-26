@@ -26,7 +26,10 @@ export const patients: Patient[] = [
     visitType: 'Hypertension follow-up',
     status: 'Ready',
     conditions: ['Hypertension', 'Hyperlipidemia'],
-    medications: ['Lisinopril 10 mg daily', 'Atorvastatin 20 mg daily'],
+    medications: [
+      'Lisinopril 10 mg daily',
+      'Atorvastatin 20 mg daily',
+    ],
     allergies: ['Penicillin'],
     lastVisit: 'February 10, 2026',
   },
