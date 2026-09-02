@@ -8,7 +8,7 @@ import {
   Search,
   Square,
 } from 'lucide-react'
-import { patients } from '../data/patients'
+import type { Patient } from '../data/patients'
 
 type TranscriptEntry = {
   speaker: 'Doctor' | 'Patient'
@@ -129,17 +129,54 @@ function Encounter() {
   const navigate = useNavigate()
   const { id } = useParams()
 
-  const patient = patients.find((p) => p.id === Number(id))
   const patientId = Number(id)
 
-  const sampleTranscript =
-    patientTranscripts[patientId] ?? []
+  const [patient, setPatient] = useState<Patient | null>(null)
+  const [loadingPatient, setLoadingPatient] = useState(true)
+  const [patientError, setPatientError] = useState('')
 
   const [isRecording, setIsRecording] = useState(false)
   const [hasStarted, setHasStarted] = useState(false)
   const [seconds, setSeconds] = useState(0)
   const [visibleTranscript, setVisibleTranscript] =
     useState<TranscriptEntry[]>([])
+
+  const sampleTranscript =
+    patientTranscripts[patientId] ?? []
+
+  useEffect(() => {
+    if (!id) {
+      setPatientError('Patient not found.')
+      setLoadingPatient(false)
+      return
+    }
+
+    fetch(`http://127.0.0.1:8000/patients/${id}`)
+      .then((response) => {
+        if (!response.ok) {
+          if (response.status === 404) {
+            throw new Error('Patient not found.')
+          }
+
+          throw new Error('Unable to load patient.')
+        }
+
+        return response.json()
+      })
+      .then((data: Patient) => {
+        setPatient(data)
+        setLoadingPatient(false)
+      })
+      .catch((error) => {
+        console.error('Patient fetch failed:', error)
+
+        setPatientError(
+          error.message || 'Unable to load patient.'
+        )
+
+        setLoadingPatient(false)
+      })
+  }, [id])
 
   useEffect(() => {
     let timer: number | undefined
@@ -151,7 +188,9 @@ function Encounter() {
     }
 
     return () => {
-      if (timer) window.clearInterval(timer)
+      if (timer) {
+        window.clearInterval(timer)
+      }
     }
   }, [isRecording])
 
@@ -166,11 +205,25 @@ function Encounter() {
       ])
     }, 1800)
 
-    return () => window.clearTimeout(transcriptTimer)
+    return () => {
+      window.clearTimeout(transcriptTimer)
+    }
   }, [isRecording, visibleTranscript, sampleTranscript])
 
-  if (!patient) {
-    return <div className="empty-page">Patient not found.</div>
+  if (loadingPatient) {
+    return (
+      <div className="empty-page">
+        Loading patient...
+      </div>
+    )
+  }
+
+  if (patientError || !patient) {
+    return (
+      <div className="empty-page">
+        {patientError || 'Patient not found.'}
+      </div>
+    )
   }
 
   const formatTime = (totalSeconds: number) => {
@@ -244,23 +297,36 @@ function Encounter() {
               Encounters
             </button>
 
-            <button className="topbar-link">
+            <button
+              className="topbar-link disabled-nav"
+              disabled
+              title="Available once encounter documentation is stored"
+            >
               Documentation
             </button>
 
-            <button className="topbar-link">
+            <button
+              className="topbar-link disabled-nav"
+              disabled
+              title="Available once care gaps are stored"
+            >
               Review Queue
               <span className="nav-badge">3</span>
             </button>
           </div>
 
           <div className="topbar-actions">
-            <button className="round-button">
+            <button
+              className="round-button"
+              aria-label="Search"
+            >
               <Search size={17} />
             </button>
 
             <div className="doctor-profile">
-              <div className="doctor-avatar">JS</div>
+              <div className="doctor-avatar">
+                JS
+              </div>
 
               <div>
                 <strong>Dr. John Smith</strong>
@@ -362,6 +428,7 @@ function Encounter() {
                   size={14}
                   fill="currentColor"
                 />
+
                 Stop Recording
               </button>
             )}
@@ -371,6 +438,7 @@ function Encounter() {
             <div className="surface-heading">
               <div>
                 <h3>Live Transcript</h3>
+
                 <p>
                   Conversation transcription appears here.
                 </p>
@@ -410,15 +478,15 @@ function Encounter() {
                         : 'PT'}
                     </div>
 
-                   <div>
-  <strong>
-    {entry.speaker === 'Doctor'
-      ? 'Dr. John Smith'
-      : patient.name}
-  </strong>
+                    <div>
+                      <strong>
+                        {entry.speaker === 'Doctor'
+                          ? 'Dr. John Smith'
+                          : patient.name}
+                      </strong>
 
-  <p>{entry.text}</p>
-</div>
+                      <p>{entry.text}</p>
+                    </div>
                   </div>
                 ))
               )}
