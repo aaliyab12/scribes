@@ -249,14 +249,41 @@ function Encounter() {
     setIsRecording(false)
   }
 
-  const endEncounter = () => {
+ const endEncounter = async () => {
+  try {
+    const response = await fetch(
+      'http://127.0.0.1:8000/encounters',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          patient_id: patient.id,
+          duration: seconds,
+          transcript: visibleTranscript,
+        }),
+      }
+    )
+
+    if (!response.ok) {
+      throw new Error('Failed to save encounter')
+    }
+
+    const encounterData = await response.json()
+
+    console.log('Encounter saved:', encounterData)
+
     navigate(`/patients/${patient.id}/encounter/review`, {
       state: {
         transcript: visibleTranscript,
         duration: seconds,
       },
     })
+  } catch (error) {
+    console.error('Encounter submission failed:', error)
   }
+}
 
   return (
     <div className="page-shell">
