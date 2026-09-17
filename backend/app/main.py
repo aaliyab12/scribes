@@ -1,4 +1,6 @@
 from typing import List, Literal
+from datetime import datetime
+from uuid import uuid4
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -39,6 +41,15 @@ class CareGap(BaseModel):
     right: str
     reason: str
     level: str
+
+
+# -----------------------------
+# Temporary encounter storage
+# -----------------------------
+
+# This is intentionally in-memory for now.
+# Data will reset whenever the FastAPI server restarts.
+encounters = {}
 
 
 # -----------------------------
@@ -366,12 +377,48 @@ def create_encounter(encounter: EncounterRequest):
         encounter.transcript,
     )
 
-    return {
-        "message": "Encounter analyzed",
+    encounter_id = str(uuid4())
+
+    created_at = datetime.now().isoformat()
+
+    stored_encounter = {
+        "encounter_id": encounter_id,
+        "patient_id": patient["id"],
         "patient": patient["name"],
         "duration": encounter.duration,
+        "created_at": created_at,
         "transcript_entries": len(encounter.transcript),
-        "transcript": encounter.transcript,
-        "soap_note": soap_note,
-        "care_gaps": care_gaps,
+        "transcript": [
+            entry.model_dump()
+            for entry in encounter.transcript
+        ],
+        "soap_note": soap_note.model_dump(),
+        "care_gaps": [
+            gap.model_dump()
+            for gap in care_gaps
+        ],
+        "status": "draft",
     }
+
+    encounters[encounter_id] = stored_encounter
+
+    return stored_encounter
+
+
+@app.get("/encounters")
+def get_encounters():
+    return list(encounters.values())
+
+
+@app.get("/encounters/{encounter_id}")
+def get_encounter(encounter_id: str):
+
+    encounter = encounters.get(encounter_id)
+
+    if encounter is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Encounter not found",
+        )
+
+    return encounter

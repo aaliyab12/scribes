@@ -15,6 +15,34 @@ type TranscriptEntry = {
   text: string
 }
 
+type EncounterResponse = {
+  encounter_id: string
+  patient_id: number
+  patient: string
+  duration: number
+  created_at: string
+  transcript_entries: number
+  transcript: TranscriptEntry[]
+  soap_note: {
+    subjective: string
+    objective: string
+    assessment: string
+    plan: string[]
+  }
+  care_gaps: {
+    id: number
+    type: string
+    title: string
+    leftLabel: string
+    left: string
+    rightLabel: string
+    right: string
+    reason: string
+    level: string
+  }[]
+  status: string
+}
+
 const patientTranscripts: Record<number, TranscriptEntry[]> = {
   1: [
     {
@@ -315,28 +343,16 @@ function Encounter() {
         )
       }
 
-      const encounterData =
+      const encounterData: EncounterResponse =
         await response.json()
 
       console.log(
-        'Encounter analyzed:',
+        'Encounter stored:',
         encounterData,
       )
 
       navigate(
-        `/patients/${patient.id}/encounter/review`,
-        {
-          state: {
-            transcript:
-              encounterData.transcript,
-            duration:
-              encounterData.duration,
-            soapNote:
-              encounterData.soap_note,
-            careGaps:
-              encounterData.care_gaps,
-          },
-        },
+        `/patients/${patient.id}/encounters/${encounterData.encounter_id}/review`,
       )
     } catch (error) {
       console.error(

@@ -16,7 +16,7 @@ function App() {
           element={<Encounter />}
         />
         <Route
-          path="/patients/:id/encounter/review"
+          path="/patients/:id/encounters/:encounterId/review"
           element={<EncounterReview />}
         />
       </Routes>
