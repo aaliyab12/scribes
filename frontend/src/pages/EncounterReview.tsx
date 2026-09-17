@@ -6,7 +6,6 @@ import {
 } from 'react-router-dom'
 import {
   Activity,
-  AlertTriangle,
   ArrowLeft,
   Check,
   Search,
@@ -20,9 +19,30 @@ type TranscriptEntry = {
   text: string
 }
 
+type SoapNote = {
+  subjective: string
+  objective: string
+  assessment: string
+  plan: string[]
+}
+
+type CareGap = {
+  id: number
+  type: string
+  title: string
+  leftLabel: string
+  left: string
+  rightLabel: string
+  right: string
+  reason: string
+  level: string
+}
+
 type EncounterState = {
   transcript?: TranscriptEntry[]
   duration?: number
+  soapNote?: SoapNote
+  careGaps?: CareGap[]
 }
 
 function EncounterReview() {
@@ -42,6 +62,12 @@ function EncounterReview() {
 
   const duration =
     encounterState?.duration ?? 0
+
+  const soapNote =
+    encounterState?.soapNote ?? null
+
+  const careGaps =
+    encounterState?.careGaps ?? []
 
   const [activeTab, setActiveTab] =
     useState<ReviewTab>('soap')
@@ -63,18 +89,6 @@ function EncounterReview() {
     )
   }
 
-  const patientStatements = transcript
-    .filter((entry) => entry.speaker === 'Patient')
-    .map((entry) => entry.text)
-
-  const doctorStatements = transcript
-    .filter((entry) => entry.speaker === 'Doctor')
-    .map((entry) => entry.text)
-
-  const transcriptText = transcript
-    .map((entry) => entry.text.toLowerCase())
-    .join(' ')
-
   const formatDuration = (totalSeconds: number) => {
     const minutes = Math.floor(totalSeconds / 60)
       .toString()
@@ -85,123 +99,6 @@ function EncounterReview() {
       .padStart(2, '0')
 
     return `${minutes}:${remaining}`
-  }
-
-  const buildSubjective = () => {
-    if (patientStatements.length === 0) {
-      return 'No patient statements were recorded during this encounter.'
-    }
-
-    return patientStatements.join(' ')
-  }
-
-  const buildObjective = () => {
-    const conditions =
-      patient.conditions.join(', ')
-
-    const medications =
-      patient.medications.join(', ')
-
-    return `Available chart history lists the following active conditions: ${conditions}. Current medications documented in the record: ${medications}.`
-  }
-
-  const buildAssessment = () => {
-    if (transcript.length === 0) {
-      return 'Insufficient encounter information available for a draft assessment.'
-    }
-
-    return `${patient.visitType}. Draft assessment is based only on the recorded encounter and available chart information and requires clinician verification.`
-  }
-
-  const buildPlan = () => {
-    if (doctorStatements.length === 0) {
-      return [
-        'No clinician plan was captured in the recorded portion of the encounter.',
-        'Review the available transcript before finalizing documentation.',
-      ]
-    }
-
-    return [
-      'Review the recorded encounter and verify the generated documentation.',
-      'Confirm any medication, laboratory, or follow-up discrepancies before finalizing the note.',
-    ]
-  }
-
-  const careGaps = []
-
-  if (
-    patient.id === 1 &&
-    transcriptText.includes('stopped taking')
-  ) {
-    careGaps.push({
-      id: 1,
-      type: 'MEDICATION DISCREPANCY',
-      title:
-        'Patient-reported medication status conflicts with current chart.',
-      leftLabel: 'PATIENT REPORTED',
-      left:
-        patientStatements.find((statement) =>
-          statement
-            .toLowerCase()
-            .includes('stopped taking'),
-        ) ?? '',
-      rightLabel: 'CURRENT RECORD',
-      right:
-        'Lisinopril 10 mg daily — listed as active.',
-      reason:
-        'The recorded encounter indicates that the patient stopped taking a medication that remains listed as active in the chart.',
-      level: 'High confidence',
-    })
-  }
-
-  if (
-    patient.id === 1 &&
-    transcriptText.includes('never got those done')
-  ) {
-    careGaps.push({
-      id: 2,
-      type: 'OUTSTANDING LABORATORY ORDERS',
-      title:
-        'Previously ordered laboratory tests appear incomplete.',
-      leftLabel: 'PREVIOUS RECORD',
-      left:
-        'CBC and comprehensive metabolic panel were ordered February 10, 2026.',
-      rightLabel: 'CURRENT ENCOUNTER',
-      right:
-        patientStatements.find((statement) =>
-          statement
-            .toLowerCase()
-            .includes('never got those done'),
-        ) ?? '',
-      reason:
-        'The patient confirmed during the recorded encounter that previously ordered tests were not completed.',
-      level: 'High confidence',
-    })
-  }
-
-  if (
-    patient.id === 4 &&
-    transcriptText.includes('miss the evening dose')
-  ) {
-    careGaps.push({
-      id: 3,
-      type: 'MEDICATION ADHERENCE',
-      title:
-        'Patient reports frequently missing an evening medication dose.',
-      leftLabel: 'PATIENT REPORTED',
-      left:
-        patientStatements.find((statement) =>
-          statement
-            .toLowerCase()
-            .includes('miss the evening dose'),
-        ) ?? '',
-      rightLabel: 'CURRENT RECORD',
-      right:
-        'Metformin 500 mg twice daily is listed as the current medication schedule.',
-      reason:
-        'The recorded medication use differs from the documented twice-daily schedule.',
-      level: 'High confidence',
-    })
   }
 
   const markReviewed = (gap: number) => {
@@ -263,12 +160,21 @@ function EncounterReview() {
               Encounters
             </button>
 
-            <button className="topbar-link">
+            <button
+              className="topbar-link disabled-nav"
+              disabled
+              title="Available once encounter documentation is stored"
+            >
               Documentation
             </button>
 
-            <button className="topbar-link">
+            <button
+              className="topbar-link disabled-nav"
+              disabled
+              title="Available once care gaps are stored"
+            >
               Review Queue
+
               <span className="nav-badge">
                 {careGaps.length}
               </span>
@@ -276,7 +182,10 @@ function EncounterReview() {
           </div>
 
           <div className="topbar-actions">
-            <button className="round-button">
+            <button
+              className="round-button"
+              aria-label="Search"
+            >
               <Search size={17} />
             </button>
 
@@ -341,7 +250,9 @@ function EncounterReview() {
           <div className="surface">
             <div className="surface-heading">
               <div>
-                <h3>No encounter transcript available</h3>
+                <h3>
+                  No encounter transcript available
+                </h3>
 
                 <p>
                   Return to the patient and record an
@@ -409,60 +320,73 @@ function EncounterReview() {
                   </div>
                 </div>
 
-                <div className="soap-note">
-                  <div className="soap-row">
-                    <div className="soap-letter">
-                      S
+                {soapNote ? (
+                  <div className="soap-note">
+                    <div className="soap-row">
+                      <div className="soap-letter">
+                        S
+                      </div>
+
+                      <div>
+                        <h4>Subjective</h4>
+                        <p>{soapNote.subjective}</p>
+                      </div>
                     </div>
 
-                    <div>
-                      <h4>Subjective</h4>
-                      <p>{buildSubjective()}</p>
+                    <div className="soap-row">
+                      <div className="soap-letter">
+                        O
+                      </div>
+
+                      <div>
+                        <h4>Objective</h4>
+                        <p>{soapNote.objective}</p>
+                      </div>
+                    </div>
+
+                    <div className="soap-row">
+                      <div className="soap-letter">
+                        A
+                      </div>
+
+                      <div>
+                        <h4>Assessment</h4>
+                        <p>{soapNote.assessment}</p>
+                      </div>
+                    </div>
+
+                    <div className="soap-row">
+                      <div className="soap-letter">
+                        P
+                      </div>
+
+                      <div>
+                        <h4>Plan</h4>
+
+                        <ul>
+                          {soapNote.plan.map(
+                            (planItem) => (
+                              <li key={planItem}>
+                                {planItem}
+                              </li>
+                            ),
+                          )}
+                        </ul>
+                      </div>
                     </div>
                   </div>
-
-                  <div className="soap-row">
-                    <div className="soap-letter">
-                      O
-                    </div>
-
-                    <div>
-                      <h4>Objective</h4>
-                      <p>{buildObjective()}</p>
-                    </div>
+                ) : (
+                  <div
+                    style={{
+                      padding: '40px 24px',
+                      textAlign: 'center',
+                      color: '#73818a',
+                      fontSize: '11px',
+                    }}
+                  >
+                    No generated SOAP note is available.
                   </div>
-
-                  <div className="soap-row">
-                    <div className="soap-letter">
-                      A
-                    </div>
-
-                    <div>
-                      <h4>Assessment</h4>
-                      <p>{buildAssessment()}</p>
-                    </div>
-                  </div>
-
-                  <div className="soap-row">
-                    <div className="soap-letter">
-                      P
-                    </div>
-
-                    <div>
-                      <h4>Plan</h4>
-
-                      <ul>
-                        {buildPlan().map(
-                          (planItem) => (
-                            <li key={planItem}>
-                              {planItem}
-                            </li>
-                          ),
-                        )}
-                      </ul>
-                    </div>
-                  </div>
-                </div>
+                )}
               </section>
             )}
 
@@ -521,9 +445,7 @@ function EncounterReview() {
 
                           <span
                             className={
-                              gap.level.startsWith(
-                                'High',
-                              )
+                              gap.level.startsWith('High')
                                 ? 'confidence-chip high'
                                 : 'confidence-chip medium'
                             }
@@ -559,15 +481,11 @@ function EncounterReview() {
                         </div>
 
                         <div className="gap-actions">
-                          {dismissed.includes(
-                            gap.id,
-                          ) ? (
+                          {dismissed.includes(gap.id) ? (
                             <span className="resolved-text">
                               Dismissed
                             </span>
-                          ) : reviewed.includes(
-                              gap.id,
-                            ) ? (
+                          ) : reviewed.includes(gap.id) ? (
                             <span className="resolved-text">
                               <Check size={14} />
                               Reviewed
@@ -586,9 +504,7 @@ function EncounterReview() {
                               <button
                                 className="soft-button"
                                 onClick={() =>
-                                  markReviewed(
-                                    gap.id,
-                                  )
+                                  markReviewed(gap.id)
                                 }
                               >
                                 Mark Reviewed
@@ -629,21 +545,21 @@ function EncounterReview() {
                       >
                         <div
                           className={
-                            entry.speaker ===
-                            'Doctor'
+                            entry.speaker === 'Doctor'
                               ? 'speaker-avatar doctor'
                               : 'speaker-avatar patient'
                           }
                         >
-                          {entry.speaker ===
-                          'Doctor'
+                          {entry.speaker === 'Doctor'
                             ? 'DR'
                             : 'PT'}
                         </div>
 
                         <div>
                           <strong>
-                            {entry.speaker}
+                            {entry.speaker === 'Doctor'
+                              ? 'Dr. John Smith'
+                              : patient.name}
                           </strong>
 
                           <p>{entry.text}</p>
@@ -669,7 +585,10 @@ function EncounterReview() {
 
           <button
             className="primary-button"
-            disabled={transcript.length === 0}
+            disabled={
+              transcript.length === 0 ||
+              !soapNote
+            }
             onClick={() => setApproved(true)}
           >
             {approved ? (

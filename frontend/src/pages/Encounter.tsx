@@ -131,15 +131,32 @@ function Encounter() {
 
   const patientId = Number(id)
 
-  const [patient, setPatient] = useState<Patient | null>(null)
-  const [loadingPatient, setLoadingPatient] = useState(true)
-  const [patientError, setPatientError] = useState('')
+  const [patient, setPatient] =
+    useState<Patient | null>(null)
 
-  const [isRecording, setIsRecording] = useState(false)
-  const [hasStarted, setHasStarted] = useState(false)
-  const [seconds, setSeconds] = useState(0)
+  const [loadingPatient, setLoadingPatient] =
+    useState(true)
+
+  const [patientError, setPatientError] =
+    useState('')
+
+  const [isRecording, setIsRecording] =
+    useState(false)
+
+  const [hasStarted, setHasStarted] =
+    useState(false)
+
+  const [seconds, setSeconds] =
+    useState(0)
+
   const [visibleTranscript, setVisibleTranscript] =
     useState<TranscriptEntry[]>([])
+
+  const [isSubmitting, setIsSubmitting] =
+    useState(false)
+
+  const [submissionError, setSubmissionError] =
+    useState('')
 
   const sampleTranscript =
     patientTranscripts[patientId] ?? []
@@ -168,10 +185,13 @@ function Encounter() {
         setLoadingPatient(false)
       })
       .catch((error) => {
-        console.error('Patient fetch failed:', error)
+        console.error(
+          'Patient fetch failed:',
+          error,
+        )
 
         setPatientError(
-          error.message || 'Unable to load patient.'
+          error.message || 'Unable to load patient.',
         )
 
         setLoadingPatient(false)
@@ -183,7 +203,9 @@ function Encounter() {
 
     if (isRecording) {
       timer = window.setInterval(() => {
-        setSeconds((previous) => previous + 1)
+        setSeconds(
+          (previous) => previous + 1,
+        )
       }, 1000)
     }
 
@@ -196,19 +218,30 @@ function Encounter() {
 
   useEffect(() => {
     if (!isRecording) return
-    if (visibleTranscript.length >= sampleTranscript.length) return
 
-    const transcriptTimer = window.setTimeout(() => {
-      setVisibleTranscript((previous) => [
-        ...previous,
-        sampleTranscript[previous.length],
-      ])
-    }, 1800)
+    if (
+      visibleTranscript.length >=
+      sampleTranscript.length
+    ) {
+      return
+    }
+
+    const transcriptTimer =
+      window.setTimeout(() => {
+        setVisibleTranscript((previous) => [
+          ...previous,
+          sampleTranscript[previous.length],
+        ])
+      }, 1800)
 
     return () => {
       window.clearTimeout(transcriptTimer)
     }
-  }, [isRecording, visibleTranscript, sampleTranscript])
+  }, [
+    isRecording,
+    visibleTranscript,
+    sampleTranscript,
+  ])
 
   if (loadingPatient) {
     return (
@@ -226,12 +259,18 @@ function Encounter() {
     )
   }
 
-  const formatTime = (totalSeconds: number) => {
-    const minutes = Math.floor(totalSeconds / 60)
+  const formatTime = (
+    totalSeconds: number,
+  ) => {
+    const minutes = Math.floor(
+      totalSeconds / 60,
+    )
       .toString()
       .padStart(2, '0')
 
-    const remaining = (totalSeconds % 60)
+    const remaining = (
+      totalSeconds % 60
+    )
       .toString()
       .padStart(2, '0')
 
@@ -241,6 +280,7 @@ function Encounter() {
   const startRecording = () => {
     setSeconds(0)
     setVisibleTranscript([])
+    setSubmissionError('')
     setHasStarted(true)
     setIsRecording(true)
   }
@@ -249,41 +289,68 @@ function Encounter() {
     setIsRecording(false)
   }
 
- const endEncounter = async () => {
-  try {
-    const response = await fetch(
-      'http://127.0.0.1:8000/encounters',
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+  const endEncounter = async () => {
+    setIsSubmitting(true)
+    setSubmissionError('')
+
+    try {
+      const response = await fetch(
+        'http://127.0.0.1:8000/encounters',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            patient_id: patient.id,
+            duration: seconds,
+            transcript: visibleTranscript,
+          }),
         },
-        body: JSON.stringify({
-          patient_id: patient.id,
-          duration: seconds,
-          transcript: visibleTranscript,
-        }),
+      )
+
+      if (!response.ok) {
+        throw new Error(
+          'Failed to analyze encounter',
+        )
       }
-    )
 
-    if (!response.ok) {
-      throw new Error('Failed to save encounter')
+      const encounterData =
+        await response.json()
+
+      console.log(
+        'Encounter analyzed:',
+        encounterData,
+      )
+
+      navigate(
+        `/patients/${patient.id}/encounter/review`,
+        {
+          state: {
+            transcript:
+              encounterData.transcript,
+            duration:
+              encounterData.duration,
+            soapNote:
+              encounterData.soap_note,
+            careGaps:
+              encounterData.care_gaps,
+          },
+        },
+      )
+    } catch (error) {
+      console.error(
+        'Encounter submission failed:',
+        error,
+      )
+
+      setSubmissionError(
+        'Unable to analyze the encounter. Please try again.',
+      )
+
+      setIsSubmitting(false)
     }
-
-    const encounterData = await response.json()
-
-    console.log('Encounter saved:', encounterData)
-
-    navigate(`/patients/${patient.id}/encounter/review`, {
-      state: {
-        transcript: visibleTranscript,
-        duration: seconds,
-      },
-    })
-  } catch (error) {
-    console.error('Encounter submission failed:', error)
   }
-}
 
   return (
     <div className="page-shell">
@@ -314,7 +381,9 @@ function Encounter() {
             <button
               className="topbar-link"
               onClick={() =>
-                navigate(`/patients/${patient.id}`)
+                navigate(
+                  `/patients/${patient.id}`,
+                )
               }
             >
               Patients
@@ -338,7 +407,9 @@ function Encounter() {
               title="Available once care gaps are stored"
             >
               Review Queue
-              <span className="nav-badge">3</span>
+              <span className="nav-badge">
+                3
+              </span>
             </button>
           </div>
 
@@ -356,8 +427,12 @@ function Encounter() {
               </div>
 
               <div>
-                <strong>Dr. John Smith</strong>
-                <span>Internal Medicine</span>
+                <strong>
+                  Dr. John Smith
+                </strong>
+                <span>
+                  Internal Medicine
+                </span>
               </div>
             </div>
           </div>
@@ -368,7 +443,9 @@ function Encounter() {
         <button
           className="back-link"
           onClick={() =>
-            navigate(`/patients/${patient.id}`)
+            navigate(
+              `/patients/${patient.id}`,
+            )
           }
         >
           <ArrowLeft size={15} />
@@ -384,7 +461,8 @@ function Encounter() {
             <h1>{patient.name}</h1>
 
             <p>
-              {patient.visitType} · {patient.age} years old
+              {patient.visitType} ·{' '}
+              {patient.age} years old
             </p>
           </div>
 
@@ -395,7 +473,10 @@ function Encounter() {
                 : 'recording-chip'
             }
           >
-            <Circle size={8} fill="currentColor" />
+            <Circle
+              size={8}
+              fill="currentColor"
+            />
 
             {isRecording
               ? 'Recording'
@@ -430,15 +511,17 @@ function Encounter() {
             </strong>
 
             <p>
-              This prototype currently uses a simulated
-              transcript. Live speech-to-text will be
-              connected later.
+              This prototype currently uses a
+              simulated transcript. Live
+              speech-to-text will be connected
+              later.
             </p>
 
             {!isRecording ? (
               <button
                 className="primary-button record-button"
                 onClick={startRecording}
+                disabled={isSubmitting}
               >
                 <Mic size={16} />
 
@@ -467,65 +550,94 @@ function Encounter() {
                 <h3>Live Transcript</h3>
 
                 <p>
-                  Conversation transcription appears here.
+                  Conversation transcription
+                  appears here.
                 </p>
               </div>
 
               <span className="subtle-counter">
-                {visibleTranscript.length} entries
+                {visibleTranscript.length}{' '}
+                entries
               </span>
             </div>
 
             <div className="transcript-body">
-              {visibleTranscript.length === 0 ? (
+              {visibleTranscript.length ===
+              0 ? (
                 <div className="transcript-empty">
                   <Mic size={28} />
 
-                  <strong>No transcript yet</strong>
+                  <strong>
+                    No transcript yet
+                  </strong>
 
                   <span>
-                    Start recording to begin the encounter.
+                    Start recording to begin
+                    the encounter.
                   </span>
                 </div>
               ) : (
-                visibleTranscript.map((entry, index) => (
-                  <div
-                    className="transcript-line"
-                    key={`${entry.speaker}-${index}`}
-                  >
+                visibleTranscript.map(
+                  (entry, index) => (
                     <div
-                      className={
-                        entry.speaker === 'Doctor'
-                          ? 'speaker-avatar doctor'
-                          : 'speaker-avatar patient'
-                      }
+                      className="transcript-line"
+                      key={`${entry.speaker}-${index}`}
                     >
-                      {entry.speaker === 'Doctor'
-                        ? 'DR'
-                        : 'PT'}
-                    </div>
+                      <div
+                        className={
+                          entry.speaker ===
+                          'Doctor'
+                            ? 'speaker-avatar doctor'
+                            : 'speaker-avatar patient'
+                        }
+                      >
+                        {entry.speaker ===
+                        'Doctor'
+                          ? 'DR'
+                          : 'PT'}
+                      </div>
 
-                    <div>
-                      <strong>
-                        {entry.speaker === 'Doctor'
-                          ? 'Dr. John Smith'
-                          : patient.name}
-                      </strong>
+                      <div>
+                        <strong>
+                          {entry.speaker ===
+                          'Doctor'
+                            ? 'Dr. John Smith'
+                            : patient.name}
+                        </strong>
 
-                      <p>{entry.text}</p>
+                        <p>
+                          {entry.text}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                ))
+                  ),
+                )
               )}
             </div>
           </section>
         </div>
 
+        {submissionError && (
+          <div
+            style={{
+              marginTop: '16px',
+              textAlign: 'right',
+              color: '#b45309',
+              fontSize: '12px',
+            }}
+          >
+            {submissionError}
+          </div>
+        )}
+
         <div className="bottom-actions">
           <button
             className="ghost-button"
+            disabled={isSubmitting}
             onClick={() =>
-              navigate(`/patients/${patient.id}`)
+              navigate(
+                `/patients/${patient.id}`,
+              )
             }
           >
             Cancel
@@ -535,11 +647,14 @@ function Encounter() {
             className="primary-button"
             disabled={
               visibleTranscript.length === 0 ||
-              isRecording
+              isRecording ||
+              isSubmitting
             }
             onClick={endEncounter}
           >
-            End Encounter
+            {isSubmitting
+              ? 'Analyzing Encounter...'
+              : 'End Encounter'}
           </button>
         </div>
       </main>
