@@ -43,6 +43,12 @@ class CareGap(BaseModel):
     level: str
 
 
+class EncounterReviewUpdate(BaseModel):
+    reviewed_gap_ids: List[int]
+    dismissed_gap_ids: List[int]
+    status: Literal["draft", "approved"]
+
+
 # -----------------------------
 # Temporary encounter storage
 # -----------------------------
@@ -398,6 +404,8 @@ def create_encounter(encounter: EncounterRequest):
             for gap in care_gaps
         ],
         "status": "draft",
+        "reviewed_gap_ids": [],
+        "dismissed_gap_ids": [],
     }
 
     encounters[encounter_id] = stored_encounter
@@ -420,5 +428,76 @@ def get_encounter(encounter_id: str):
             status_code=404,
             detail="Encounter not found",
         )
+
+    return encounter
+
+
+@app.patch("/encounters/{encounter_id}/review")
+def update_encounter_review(
+    encounter_id: str,
+    review: EncounterReviewUpdate,
+):
+
+    encounter = encounters.get(encounter_id)
+
+    if encounter is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Encounter not found",
+        )
+
+    valid_gap_ids = {
+        gap["id"]
+        for gap in encounter["care_gaps"]
+    }
+
+    reviewed_ids = set(
+        review.reviewed_gap_ids
+    )
+
+    dismissed_ids = set(
+        review.dismissed_gap_ids
+    )
+
+    if not reviewed_ids.issubset(
+        valid_gap_ids
+    ):
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                "One or more reviewed care gap IDs "
+                "are invalid."
+            ),
+        )
+
+    if not dismissed_ids.issubset(
+        valid_gap_ids
+    ):
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                "One or more dismissed care gap IDs "
+                "are invalid."
+            ),
+        )
+
+    if reviewed_ids & dismissed_ids:
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                "A care gap cannot be both reviewed "
+                "and dismissed."
+            ),
+        )
+
+    encounter["reviewed_gap_ids"] = (
+        review.reviewed_gap_ids
+    )
+
+    encounter["dismissed_gap_ids"] = (
+        review.dismissed_gap_ids
+    )
+
+    encounter["status"] = review.status
 
     return encounter

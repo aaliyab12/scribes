@@ -47,7 +47,9 @@ type StoredEncounter = {
   transcript: TranscriptEntry[]
   soap_note: SoapNote
   care_gaps: CareGap[]
-  status: string
+  status: 'draft' | 'approved'
+  reviewed_gap_ids: number[]
+  dismissed_gap_ids: number[]
 }
 
 function EncounterReview() {
@@ -81,6 +83,12 @@ function EncounterReview() {
 
   const [approved, setApproved] =
     useState(false)
+
+  const [isSaving, setIsSaving] =
+    useState(false)
+
+  const [saveError, setSaveError] =
+    useState('')
 
   useEffect(() => {
     if (!id || !encounterId) {
@@ -142,6 +150,18 @@ function EncounterReview() {
 
         setPatient(patientData)
         setEncounter(encounterData)
+
+        setReviewed(
+          encounterData.reviewed_gap_ids ?? [],
+        )
+
+        setDismissed(
+          encounterData.dismissed_gap_ids ?? [],
+        )
+
+        setApproved(
+          encounterData.status === 'approved',
+        )
       } catch (error) {
         console.error(
           'Encounter review fetch failed:',
@@ -162,6 +182,74 @@ function EncounterReview() {
 
     loadReview()
   }, [id, encounterId])
+
+  const saveReviewState = async (
+    reviewedIds: number[],
+    dismissedIds: number[],
+    status: 'draft' | 'approved',
+  ) => {
+    if (!encounterId) {
+      return false
+    }
+
+    setIsSaving(true)
+    setSaveError('')
+
+    try {
+      const response = await fetch(
+        `http://127.0.0.1:8000/encounters/${encounterId}/review`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            reviewed_gap_ids: reviewedIds,
+            dismissed_gap_ids: dismissedIds,
+            status,
+          }),
+        },
+      )
+
+      if (!response.ok) {
+        throw new Error(
+          'Unable to save review.',
+        )
+      }
+
+      const updatedEncounter: StoredEncounter =
+        await response.json()
+
+      setEncounter(updatedEncounter)
+
+      setReviewed(
+        updatedEncounter.reviewed_gap_ids ?? [],
+      )
+
+      setDismissed(
+        updatedEncounter.dismissed_gap_ids ?? [],
+      )
+
+      setApproved(
+        updatedEncounter.status === 'approved',
+      )
+
+      return true
+    } catch (error) {
+      console.error(
+        'Review update failed:',
+        error,
+      )
+
+      setSaveError(
+        'Unable to save review changes. Please try again.',
+      )
+
+      return false
+    } finally {
+      setIsSaving(false)
+    }
+  }
 
   if (loading) {
     return (
@@ -214,37 +302,55 @@ function EncounterReview() {
     return `${minutes}:${remaining}`
   }
 
-  const markReviewed = (
+  const markReviewed = async (
     gap: number,
   ) => {
-    setReviewed((current) => [
+    const newReviewed = [
       ...new Set([
-        ...current,
+        ...reviewed,
         gap,
       ]),
-    ])
+    ]
 
-    setDismissed((current) =>
-      current.filter(
+    const newDismissed =
+      dismissed.filter(
         (item) => item !== gap,
-      ),
+      )
+
+    await saveReviewState(
+      newReviewed,
+      newDismissed,
+      approved ? 'approved' : 'draft',
     )
   }
 
-  const dismiss = (
+  const dismiss = async (
     gap: number,
   ) => {
-    setDismissed((current) => [
+    const newDismissed = [
       ...new Set([
-        ...current,
+        ...dismissed,
         gap,
       ]),
-    ])
+    ]
 
-    setReviewed((current) =>
-      current.filter(
+    const newReviewed =
+      reviewed.filter(
         (item) => item !== gap,
-      ),
+      )
+
+    await saveReviewState(
+      newReviewed,
+      newDismissed,
+      approved ? 'approved' : 'draft',
+    )
+  }
+
+  const approveDraft = async () => {
+    await saveReviewState(
+      reviewed,
+      dismissed,
+      'approved',
     )
   }
 
@@ -383,6 +489,19 @@ function EncounterReview() {
             )}
           </span>
         </section>
+
+        {saveError && (
+          <div
+            style={{
+              marginBottom: '16px',
+              textAlign: 'right',
+              color: '#b45309',
+              fontSize: '12px',
+            }}
+          >
+            {saveError}
+          </div>
+        )}
 
         {transcript.length === 0 && (
           <div className="surface">
@@ -661,6 +780,7 @@ function EncounterReview() {
                               <>
                                 <button
                                   className="ghost-button small"
+                                  disabled={isSaving}
                                   onClick={() =>
                                     dismiss(
                                       gap.id,
@@ -672,6 +792,7 @@ function EncounterReview() {
 
                                 <button
                                   className="soft-button"
+                                  disabled={isSaving}
                                   onClick={() =>
                                     markReviewed(
                                       gap.id,
@@ -757,6 +878,7 @@ function EncounterReview() {
         <div className="bottom-actions">
           <button
             className="ghost-button"
+            disabled={isSaving}
             onClick={() =>
               navigate(
                 `/patients/${patient.id}`,
@@ -769,13 +891,15 @@ function EncounterReview() {
           <button
             className="primary-button"
             disabled={
-              transcript.length === 0
+              transcript.length === 0 ||
+              isSaving ||
+              approved
             }
-            onClick={() =>
-              setApproved(true)
-            }
+            onClick={approveDraft}
           >
-            {approved ? (
+            {isSaving ? (
+              'Saving...'
+            ) : approved ? (
               <>
                 <Check size={16} />
                 Approved
