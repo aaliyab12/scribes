@@ -395,27 +395,22 @@ function Encounter() {
             </button>
 
             <button
-              className="topbar-link"
-              onClick={() =>
-                navigate(
-                  `/patients/${patient.id}`,
-                )
-              }
+            className="topbar-link"
+            onClick={() => navigate('/patients')}
             >
               Patients
-            </button>
+              </button>
 
             <button className="topbar-link active">
               Encounters
             </button>
 
             <button
-              className="topbar-link disabled-nav"
-              disabled
-              title="Available once encounter documentation is stored"
-            >
-              Documentation
-            </button>
+  className="topbar-link"
+  onClick={() => navigate('/documentation')}
+>
+  Documentation
+</button>
 
             <button
               className="topbar-link disabled-nav"

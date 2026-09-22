@@ -95,7 +95,10 @@ function PatientProfile() {
               Dashboard
             </button>
 
-            <button className="topbar-link active">
+            <button
+            className="topbar-link"
+            onClick={() => navigate('/patients')}
+            >
               Patients
             </button>
 
@@ -109,9 +112,8 @@ function PatientProfile() {
             </button>
 
             <button
-              className="topbar-link disabled-nav"
-              disabled
-              title="Available once encounter documentation is stored"
+            className="topbar-link"
+            onClick={() => navigate('/documentation')}
             >
               Documentation
             </button>

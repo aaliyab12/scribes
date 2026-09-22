@@ -64,18 +64,11 @@ function Dashboard() {
             </button>
 
             <button
-              className="topbar-link"
-              onClick={() => {
-                document
-                  .getElementById('patients')
-                  ?.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'start',
-                  })
-              }}
+            className="topbar-link"
+            onClick={() => navigate('/patients')}
             >
               Patients
-            </button>
+              </button>
 
             <button
               className="topbar-link"
@@ -92,12 +85,11 @@ function Dashboard() {
             </button>
 
             <button
-              className="topbar-link disabled-nav"
-              disabled
-              title="Available once encounter documentation is stored"
+            className="topbar-link"
+            onClick={() => navigate('/documentation')}
             >
               Documentation
-            </button>
+              </button>
 
             <button
               className="topbar-link disabled-nav"
