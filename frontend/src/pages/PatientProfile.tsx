@@ -103,10 +103,8 @@ function PatientProfile() {
             </button>
 
             <button
-              className="topbar-link"
-              onClick={() =>
-                navigate(`/patients/${patient.id}/encounter`)
-              }
+            className="topbar-link"
+            onClick={() => navigate('/encounters')}
             >
               Encounters
             </button>

@@ -3,8 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import {
   Activity,
   ArrowRight,
-  FileText,
   Search,
+  Stethoscope,
 } from 'lucide-react'
 
 type StoredEncounter = {
@@ -22,7 +22,7 @@ type StoredEncounter = {
   }[]
 }
 
-function Documentation() {
+function Encounters() {
   const navigate = useNavigate()
 
   const [encounters, setEncounters] =
@@ -34,6 +34,9 @@ function Documentation() {
   const [loadError, setLoadError] =
     useState('')
 
+  const [searchQuery, setSearchQuery] =
+    useState('')
+
   useEffect(() => {
     const loadEncounters = async () => {
       try {
@@ -43,7 +46,7 @@ function Documentation() {
 
         if (!response.ok) {
           throw new Error(
-            'Unable to load documentation.',
+            'Unable to load encounters.',
           )
         }
 
@@ -53,12 +56,12 @@ function Documentation() {
         setEncounters(data)
       } catch (error) {
         console.error(
-          'Documentation fetch failed:',
+          'Encounters fetch failed:',
           error,
         )
 
         setLoadError(
-          'Unable to load documentation.',
+          'Unable to load encounters.',
         )
       } finally {
         setLoading(false)
@@ -67,6 +70,25 @@ function Documentation() {
 
     loadEncounters()
   }, [])
+
+  const filteredEncounters =
+    encounters.filter((encounter) => {
+      const query =
+        searchQuery.toLowerCase().trim()
+
+      if (!query) {
+        return true
+      }
+
+      return (
+        encounter.patient
+          .toLowerCase()
+          .includes(query) ||
+        encounter.status
+          .toLowerCase()
+          .includes(query)
+      )
+    })
 
   const formatDuration = (
     totalSeconds: number,
@@ -129,24 +151,31 @@ function Documentation() {
             </button>
 
             <button
-            className="topbar-link"
-            onClick={() => navigate('/patients')}
+              className="topbar-link"
+              onClick={() =>
+                navigate('/patients')
+              }
             >
-                Patients
+              Patients
+            </button>
+
+            <button className="topbar-link active">
+              Encounters
             </button>
 
             <button
-            className="topbar-link"
-            onClick={() => navigate('/encounters')}
+              className="topbar-link"
+              onClick={() =>
+                navigate('/documentation')
+              }
             >
-                Encounters
-                </button>
-
-            <button className="topbar-link active">
               Documentation
             </button>
 
-            <button className="topbar-link">
+            <button
+              className="topbar-link disabled-nav"
+              disabled
+            >
               Review Queue
             </button>
           </div>
@@ -181,17 +210,61 @@ function Documentation() {
         <section className="review-title">
           <div>
             <span className="overline">
-              CLINICAL DOCUMENTATION
+              ENCOUNTER HISTORY
             </span>
 
-            <h1>Documentation</h1>
+            <h1>Encounters</h1>
 
             <p>
-              Review generated documentation
-              from recorded encounters.
+              View recorded patient encounters
+              and their review status.
             </p>
           </div>
         </section>
+
+        <div
+          className="surface"
+          style={{
+            marginBottom: '20px',
+            padding: '14px 18px',
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px',
+            }}
+          >
+            <Search
+              size={17}
+              style={{
+                flexShrink: 0,
+                opacity: 0.55,
+              }}
+            />
+
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(event) =>
+                setSearchQuery(
+                  event.target.value,
+                )
+              }
+              placeholder="Search by patient name or review status"
+              aria-label="Search encounters"
+              style={{
+                width: '100%',
+                border: 'none',
+                outline: 'none',
+                background: 'transparent',
+                font: 'inherit',
+                color: 'inherit',
+              }}
+            />
+          </div>
+        </div>
 
         {loading && (
           <div className="surface">
@@ -201,7 +274,7 @@ function Documentation() {
                 textAlign: 'center',
               }}
             >
-              Loading documentation...
+              Loading encounters...
             </div>
           </div>
         )}
@@ -229,7 +302,7 @@ function Documentation() {
                   textAlign: 'center',
                 }}
               >
-                <FileText
+                <Stethoscope
                   size={28}
                   style={{
                     marginBottom: '12px',
@@ -237,12 +310,12 @@ function Documentation() {
                 />
 
                 <h3>
-                  No documentation yet
+                  No encounters yet
                 </h3>
 
                 <p>
-                  Completed encounters will
-                  appear here for review.
+                  Recorded patient encounters
+                  will appear here.
                 </p>
               </div>
             </div>
@@ -250,9 +323,39 @@ function Documentation() {
 
         {!loading &&
           !loadError &&
-          encounters.length > 0 && (
+          encounters.length > 0 &&
+          filteredEncounters.length === 0 && (
+            <div className="surface">
+              <div
+                style={{
+                  padding: '50px 24px',
+                  textAlign: 'center',
+                }}
+              >
+                <Search
+                  size={26}
+                  style={{
+                    marginBottom: '12px',
+                  }}
+                />
+
+                <h3>
+                  No matching encounters
+                </h3>
+
+                <p>
+                  Try searching by patient
+                  name or review status.
+                </p>
+              </div>
+            </div>
+          )}
+
+        {!loading &&
+          !loadError &&
+          filteredEncounters.length > 0 && (
             <div className="gap-list">
-              {encounters.map(
+              {filteredEncounters.map(
                 (encounter) => (
                   <article
                     className="gap-card"
@@ -291,7 +394,7 @@ function Documentation() {
                     <div className="evidence-pair">
                       <div>
                         <span>
-                          Encounter Duration
+                          Duration
                         </span>
 
                         <p>
@@ -303,14 +406,48 @@ function Documentation() {
 
                       <div>
                         <span>
+                          Transcript
+                        </span>
+
+                        <p>
+                          {
+                            encounter
+                              .transcript_entries
+                          }{' '}
+                          entries
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="evidence-pair">
+                      <div>
+                        <span>
                           Care Gaps
                         </span>
 
                         <p>
                           {
                             encounter
-                              .care_gaps
+                              .care_gaps.length
+                          }
+                        </p>
+                      </div>
+
+                      <div>
+                        <span>
+                          Reviewed
+                        </span>
+
+                        <p>
+                          {
+                            encounter
+                              .reviewed_gap_ids
                               .length
+                          }{' '}
+                          of{' '}
+                          {
+                            encounter
+                              .care_gaps.length
                           }
                         </p>
                       </div>
@@ -325,7 +462,7 @@ function Documentation() {
                           )
                         }
                       >
-                        Open Documentation
+                        View Encounter
                         <ArrowRight
                           size={14}
                         />
@@ -341,4 +478,4 @@ function Documentation() {
   )
 }
 
-export default Documentation
+export default Encounters

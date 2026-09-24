@@ -389,7 +389,10 @@ function EncounterReview() {
               Patients
               </button>
 
-            <button className="topbar-link active">
+            <button
+            className="topbar-link"
+            onClick={() => navigate('/encounters')}
+            >
               Encounters
             </button>
 

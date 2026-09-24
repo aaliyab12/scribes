@@ -71,18 +71,11 @@ function Dashboard() {
               </button>
 
             <button
-              className="topbar-link"
-              onClick={() => {
-                document
-                  .getElementById('patients')
-                  ?.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'start',
-                  })
-              }}
+            className="topbar-link"
+            onClick={() => navigate('/encounters')}
             >
               Encounters
-            </button>
+              </button>
 
             <button
             className="topbar-link"

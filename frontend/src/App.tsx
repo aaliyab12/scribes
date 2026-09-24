@@ -9,6 +9,7 @@ import PatientProfile from './pages/PatientProfile'
 import Encounter from './pages/Encounter'
 import EncounterReview from './pages/EncounterReview'
 import Documentation from './pages/Documentation'
+import Encounters from './pages/Encounters'
 
 function App() {
   return (
@@ -24,6 +25,10 @@ function App() {
           element={<Patients />}
         />
 
+        <Route
+        path="/encounters"
+        element={<Encounters />}
+        />
         <Route
           path="/patients/:id"
           element={<PatientProfile />}

@@ -401,16 +401,19 @@ function Encounter() {
               Patients
               </button>
 
-            <button className="topbar-link active">
+            <button
+            className="topbar-link"
+            onClick={() => navigate('/encounters')}
+            >
               Encounters
-            </button>
+              </button>
 
             <button
-  className="topbar-link"
-  onClick={() => navigate('/documentation')}
->
-  Documentation
-</button>
+            className="topbar-link"
+            onClick={() => navigate('/documentation')}
+            >
+              Documentation
+              </button>
 
             <button
               className="topbar-link disabled-nav"

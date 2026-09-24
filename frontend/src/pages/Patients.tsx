@@ -117,8 +117,11 @@ function Patients() {
               Patients
             </button>
 
-            <button className="topbar-link">
-              Encounters
+            <button
+            className="topbar-link"
+            onClick={() => navigate('/encounters')}
+            >
+                Encounters
             </button>
 
             <button
