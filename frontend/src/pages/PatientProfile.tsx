@@ -117,12 +117,10 @@ function PatientProfile() {
             </button>
 
             <button
-              className="topbar-link disabled-nav"
-              disabled
-              title="Available once care gaps are stored"
+            className="topbar-link"
+            onClick={() => navigate('/review-queue')}
             >
               Review Queue
-              <span className="nav-badge">3</span>
             </button>
           </div>
 

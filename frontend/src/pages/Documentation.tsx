@@ -146,9 +146,12 @@ function Documentation() {
               Documentation
             </button>
 
-            <button className="topbar-link">
+            <button
+            className="topbar-link"
+            onClick={() => navigate('/review-queue')}
+            >
               Review Queue
-            </button>
+              </button>
           </div>
 
           <div className="topbar-actions">

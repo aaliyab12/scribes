@@ -10,6 +10,7 @@ import Encounter from './pages/Encounter'
 import EncounterReview from './pages/EncounterReview'
 import Documentation from './pages/Documentation'
 import Encounters from './pages/Encounters'
+import ReviewQueue from './pages/ReviewQueue'
 
 function App() {
   return (
@@ -47,6 +48,11 @@ function App() {
         <Route
           path="/documentation"
           element={<Documentation />}
+        />
+
+        <Route
+          path="/review-queue"
+          element={<ReviewQueue />}
         />
       </Routes>
     </BrowserRouter>
