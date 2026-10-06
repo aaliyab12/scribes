@@ -7,6 +7,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from app.patients import patients
+from app.storage import (
+    save_encounter,
+    get_encounter as get_stored_encounter,
+    list_encounters,
+)
 
 
 # -----------------------------
@@ -47,15 +52,6 @@ class EncounterReviewUpdate(BaseModel):
     reviewed_gap_ids: List[int]
     dismissed_gap_ids: List[int]
     status: Literal["draft", "approved"]
-
-
-# -----------------------------
-# Temporary encounter storage
-# -----------------------------
-
-# This is intentionally in-memory for now.
-# Data will reset whenever the FastAPI server restarts.
-encounters = {}
 
 
 # -----------------------------
@@ -408,20 +404,22 @@ def create_encounter(encounter: EncounterRequest):
         "dismissed_gap_ids": [],
     }
 
-    encounters[encounter_id] = stored_encounter
+    save_encounter(stored_encounter)
 
     return stored_encounter
 
 
 @app.get("/encounters")
 def get_encounters():
-    return list(encounters.values())
+    return list_encounters()
 
 
 @app.get("/encounters/{encounter_id}")
 def get_encounter(encounter_id: str):
 
-    encounter = encounters.get(encounter_id)
+    encounter = get_stored_encounter(
+        encounter_id
+    )
 
     if encounter is None:
         raise HTTPException(
@@ -438,7 +436,9 @@ def update_encounter_review(
     review: EncounterReviewUpdate,
 ):
 
-    encounter = encounters.get(encounter_id)
+    encounter = get_stored_encounter(
+        encounter_id
+    )
 
     if encounter is None:
         raise HTTPException(
@@ -499,5 +499,7 @@ def update_encounter_review(
     )
 
     encounter["status"] = review.status
+
+    save_encounter(encounter)
 
     return encounter
